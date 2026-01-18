@@ -3,9 +3,6 @@ import { createLoan } from "../../lib/services/loan.service";
 import { LoanStatus } from "@prisma/client";
 import { prismaMock } from "./mocks/prisma.mock";
 
-// Mock the prisma client module to prevent actual instantiation
-// We must mock BOTH the relative path (used by this test file)
-// AND the alias path (used by loan.service.ts, which is misconfigured in tsconfig but used in code)
 vi.mock("../../lib/db/prisma", async () => {
   const { prismaMock } = await import("./mocks/prisma.mock");
   return { prisma: prismaMock };
@@ -18,7 +15,7 @@ vi.mock("@/lib/db/prisma", async () => {
 
 describe("Loan Service", () => {
   it("creates a loan with ACTIVE status and correct amounts", async () => {
-    // Arrange
+    
     const mockedLoan = {
       id: "loan-1",
       status: LoanStatus.ACTIVE,
@@ -36,7 +33,6 @@ describe("Loan Service", () => {
 
     prismaMock.loan.create.mockResolvedValue(mockedLoan as any);
 
-    // Act
     const result = await createLoan({
       clientId: "client-1",
       principalAmount: 1000,
