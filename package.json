@@ -1,8 +1,13 @@
 {
   "devDependencies": {
-    "prisma": "^7.2.0"
+    "@types/node": "^25.0.9",
+    "@vitest/coverage-v8": "^4.0.17",
+    "prisma": "^7.2.0",
+    "vitest": "^4.0.17"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@prisma/adapter-neon": "^7.2.0",
     "@prisma/client": "^7.2.0"
   }
 }
