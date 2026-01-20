@@ -53,5 +53,38 @@ describe("Loan Service", () => {
 
     // Verify result
     expect(result.status).toBe(LoanStatus.ACTIVE);
+
+
+    it('should not allow payments on a canceled loan', () => {
+  const loan = {
+    outstandingBalance: 1000,
+    status: 'CANCELED',
+  };
+
+  expect(() => registerPayment(loan, 500)).toThrow(
+    'Cannot register payment on canceled loan'
+  );
+});
+
+
+
   });
 });
+function registerPayment(loan: { outstandingBalance: number; status: string; }, arg1: number): any {
+  throw new Error("Function not implemented.");
+}
+
+
+it('should mark loan as PAID when balance reaches zero', () => {
+  const loan = {
+    outstandingBalance: 500,
+    status: 'ACTIVE',
+  };
+
+  registerPayment(loan, 500);
+
+  expect(loan.outstandingBalance).toBe(0);
+  expect(loan.status).toBe('PAID');
+});
+
+
