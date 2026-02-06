@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+/*
+====================================
+ENUMS
+====================================
+*/
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
+enum LoanStatus {
+  ACTIVE        // al día
+  OVERDUE       // en mora
+  PAID          // totalmente pagado
+  CANCELED      // anulado
+}
+
+
+enum PaymentFrequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum PaymentType {
+  REGULAR
+  CAPITAL_PAYMENT
+  FULL_SETTLEMENT
+}
+
+/*
+====================================
+MODELS
+====================================
+*/
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole @default(OPERATOR)
+  active    Boolean  @default(true)
+
+  createdLoans Loan[] @relation("LoansCreated")
+  updatedLoans Loan[] @relation("LoansUpdated")
+  payments     Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Client {
+  id         String  @id @default(uuid())
+  firstName  String
+  lastName   String?
+  documentId String  @unique
+  phone      String
+  email      String?
+  address    String?
+  currency   String  @default("DOP")
+  active     Boolean @default(true)
+
+  loans Loan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Loan {
+  id                 String           @id @default(uuid())
+  clientId           String
+  principalAmount    Decimal          @db.Decimal(12, 2)
+  annualInterestRate Decimal          @db.Decimal(5, 2)
+  paymentFrequency   PaymentFrequency
+  termCount          Int
+  installmentAmount  Decimal          @db.Decimal(12, 2)
+  remainingCapital   Decimal          @db.Decimal(12, 2)
+  nextDueDate        DateTime?
+  status             LoanStatus       @default(ACTIVE)
+  guarantees         String?
+
+  client   Client   @relation(fields: [clientId], references: [id])
+  payments Payment[]
+
+  createdById String
+  updatedById String?
+
+  createdBy User  @relation("LoansCreated", fields: [createdById], references: [id])
+  updatedBy User? @relation("LoansUpdated", fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model Payment {
+  id              String      @id @default(uuid())
+  loanId          String
+  paymentDate     DateTime    @default(now())
+  totalAmount     Decimal     @db.Decimal(12, 2)
+  capitalApplied  Decimal     @db.Decimal(12, 2)
+  interestApplied Decimal     @db.Decimal(12, 2)
+  lateFeeApplied  Decimal     @default(0) @db.Decimal(12, 2)
+  type            PaymentType
+
+  loan Loan @relation(fields: [loanId], references: [id])
+
+  createdById String
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([loanId])
+}
