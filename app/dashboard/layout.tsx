@@ -139,6 +139,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="sidebar-user-role">{user?.role}</span>
             </div>
           </div>
+          <button className="sidebar-logout" onClick={handleLogout}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Cerrar sesión
+          </button>
         </div>
       </aside>
 
@@ -161,14 +169,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {user?.role}
               </span>
             </span>
-            <button className="topbar-logout" onClick={handleLogout}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              Salir
-            </button>
           </div>
         </header>
 
@@ -205,7 +205,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         /* ===== SIDEBAR ===== */
         .sidebar {
           width: 240px;
-          background: #111827;
+          background: white;
+          border-right: 1px solid #e5e7eb;
           display: flex;
           flex-direction: column;
           position: fixed;
@@ -225,7 +226,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .sidebar-brand-text {
           font-size: 1.1rem;
           font-weight: 700;
-          color: white;
+          color: #111827;
           letter-spacing: -0.02em;
         }
 
@@ -237,26 +238,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           padding: 0 12px;
         }
 
-       /* ===== SIDEBAR LAYOUT FIX ===== */
-.sidebar-link {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 10px 12px !important;
-  border-radius: 8px !important;
-  font-size: 0.9rem !important;
-  font-weight: 500 !important;
-  transition: all 0.15s ease !important;
-}
-.sidebar-link:hover {
-  background: rgba(255,255,255,0.06) !important;
-}
-.sidebar-link-active {
-  background: rgba(37, 99, 235, 0.15) !important;
-}
+        .sidebar-link {
+          display: flex !important;
+          align-items: center !important;
+          gap: 12px !important;
+          padding: 10px 12px !important;
+          border-radius: 8px !important;
+          font-size: 0.9rem !important;
+          font-weight: 500 !important;
+          color: #6b7280 !important;
+          transition: all 0.15s ease !important;
+        }
+        .sidebar-link:hover {
+          background: #f3f4f6 !important;
+          color: #111827 !important;
+        }
+        .sidebar-link-active {
+          background: #eff6ff !important;
+          color: #2563eb !important;
+        }
         .sidebar-link-active:hover {
-          background: rgba(37, 99, 235, 0.2);
-          color: #60a5fa !important;
+          background: #dbeafe !important;
+          color: #2563eb !important;
         }
         .sidebar-link-icon {
           display: flex;
@@ -270,12 +273,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         .sidebar-footer {
           padding: 16px;
-          border-top: 1px solid rgba(255,255,255,0.08);
+          border-top: 1px solid #e5e7eb;
         }
         .sidebar-user-info {
           display: flex;
           align-items: center;
           gap: 10px;
+          margin-bottom: 12px;
         }
         .sidebar-avatar {
           width: 36px;
@@ -298,16 +302,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .sidebar-user-name {
           font-size: 0.825rem;
           font-weight: 600;
-          color: #e5e7eb;
+          color: #111827;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
         .sidebar-user-role {
           font-size: 0.7rem;
-          color: #6b7280;
+          color: #9ca3af;
           text-transform: uppercase;
           letter-spacing: 0.05em;
+        }
+        .sidebar-logout {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          background: none;
+          font-size: 0.8rem;
+          font-weight: 500;
+          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .sidebar-logout:hover {
+          border-color: #ef4444;
+          color: #ef4444;
+          background: #fef2f2;
         }
 
         /* ===== MAIN AREA ===== */
@@ -366,24 +390,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           background: #f3f4f6;
           color: #6b7280;
         }
-        .topbar-logout {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: none;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 6px 14px;
-          font-size: 0.825rem;
-          color: #6b7280;
-          cursor: pointer;
-          transition: all 0.15s;
-        }
-        .topbar-logout:hover {
-          border-color: #ef4444;
-          color: #ef4444;
-        }
-
         /* ===== CONTENT ===== */
         .main-content {
           flex: 1;
