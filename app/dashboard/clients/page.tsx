@@ -12,6 +12,7 @@ interface Client {
   documentId: string;
   phone: string;
   email: string | null;
+  address: string | null;
   currency: string;
   active: boolean;
   _count: { loans: number };
