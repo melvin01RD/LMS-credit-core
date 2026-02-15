@@ -8,16 +8,19 @@ export const prismaMock = {
     findUnique: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
+    aggregate: vi.fn(),
   },
-  
+
   // Payment operations
   payment: {
     create: vi.fn(),
     findMany: vi.fn(),
     findUnique: vi.fn(),
     aggregate: vi.fn(),
+    count: vi.fn(),
   },
-  
+
   // Client operations
   client: {
     create: vi.fn(),
@@ -25,16 +28,18 @@ export const prismaMock = {
     findUnique: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
   },
-  
+
   // User operations
   user: {
     create: vi.fn(),
     findMany: vi.fn(),
     findUnique: vi.fn(),
     update: vi.fn(),
+    count: vi.fn(),
   },
-  
+
   // Transaction support
   $transaction: vi.fn(),
 };
