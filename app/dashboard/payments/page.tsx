@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import CreatePaymentModal from "@/components/payments/CreatePaymentModal";
+import ReportButton from "@/components/reports/ReportButton";
 
 // ============================================
 // INTERFACES
@@ -268,9 +269,19 @@ export default function PaymentsPage() {
                         : "—"}
                     </td>
                     <td>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span onClick={(e) => e.stopPropagation()}>
+                          <ReportButton
+                            type="recibo-pago"
+                            entityId={payment.id}
+                            variant="icon"
+                            mode="preview"
+                          />
+                        </span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </div>
                     </td>
                   </tr>
                 );

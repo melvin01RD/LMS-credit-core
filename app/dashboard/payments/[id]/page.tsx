@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import ReportButton from "@/components/reports/ReportButton";
 
 // ============================================
 // INTERFACES
@@ -180,15 +181,25 @@ export default function PaymentDetailPage() {
             </span>
           </div>
         </div>
-        {canReverse && (
-          <button className="btn-danger" onClick={() => setShowReverseModal(true)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="1 4 1 10 7 10" />
-              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-            </svg>
-            Reversar Pago
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <ReportButton
+            type="recibo-pago"
+            entityId={payment.id}
+            label="Recibo PDF"
+            variant="outline"
+            size="md"
+            mode="preview"
+          />
+          {canReverse && (
+            <button className="btn-danger" onClick={() => setShowReverseModal(true)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
+              Reversar Pago
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Breakdown card */}
