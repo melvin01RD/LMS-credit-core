@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { getTodayPayments } from "@/lib/services";
 
-export const GET = withErrorHandler(async () => {
+export const GET = withAuth(async () => {
   const payments = await getTodayPayments();
   return NextResponse.json(payments);
 });

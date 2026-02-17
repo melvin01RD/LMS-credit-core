@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
-import { createClient, getClients } from "@/lib/services";
+import { withAuth } from "@/lib/api/auth-middleware";
+import { createClient, getClients, auditLog, AuditAction, AuditEntity } from "@/lib/services";
 
-export const GET = withErrorHandler(async (req) => {
+export const GET = withAuth(async (req) => {
   const { searchParams } = new URL(req.url);
   const page = Number(searchParams.get("page") ?? 1);
   const limit = Number(searchParams.get("limit") ?? 20);
@@ -22,8 +22,12 @@ export const GET = withErrorHandler(async (req) => {
   return NextResponse.json(result);
 });
 
-export const POST = withErrorHandler(async (req) => {
+export const POST = withAuth(async (req) => {
   const data = await req.json();
   const client = await createClient(data);
+  await auditLog(req.session.userId, AuditAction.CREATE_CLIENT, AuditEntity.CLIENT, client.id, {
+    firstName: client.firstName,
+    currency: client.currency,
+  });
   return NextResponse.json(client, { status: 201 });
 });

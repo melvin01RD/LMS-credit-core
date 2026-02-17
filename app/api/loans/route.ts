@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { createLoan, getLoans } from "@/lib/services";
 import { LoanStatus } from "@prisma/client";
 
-export const GET = withErrorHandler(async (req) => {
+export const GET = withAuth(async (req) => {
   const { searchParams } = new URL(req.url);
   const page = Number(searchParams.get("page") ?? 1);
   const limit = Number(searchParams.get("limit") ?? 20);
@@ -19,7 +19,7 @@ export const GET = withErrorHandler(async (req) => {
   return NextResponse.json(result);
 });
 
-export const POST = withErrorHandler(async (req) => {
+export const POST = withAuth(async (req) => {
   const data = await req.json();
   const loan = await createLoan(data);
   return NextResponse.json(loan, { status: 201 });

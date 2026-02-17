@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { getLoanPayments, createPayment } from "@/lib/services";
 
-export const GET = withErrorHandler(async (req, context) => {
+export const GET = withAuth(async (req, context) => {
   const params = await context!.params;
   const payments = await getLoanPayments(params.id);
   return NextResponse.json(payments);
 });
 
-export const POST = withErrorHandler(async (req, context) => {
+export const POST = withAuth(async (req, context) => {
   const params = await context!.params;
   const data = await req.json();
   

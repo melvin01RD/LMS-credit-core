@@ -15,6 +15,7 @@ import {
   calculateLateFee,
 } from "../domain/loan";
 import { PaginationOptions, PaginatedResult } from "../types";
+import { auditLog, AuditAction, AuditEntity } from "./audit.service";
 
 // ============================================
 // INTERFACES
@@ -174,7 +175,7 @@ export async function createPayment(data: CreatePaymentInput): Promise<PaymentRe
     );
   }
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const loan = await tx.loan.findUnique({
       where: { id: data.loanId },
     });
@@ -232,6 +233,16 @@ export async function createPayment(data: CreatePaymentInput): Promise<PaymentRe
       statusChanged: loan.status !== newStatus,
     };
   });
+
+  await auditLog(data.createdById, AuditAction.REGISTER_PAYMENT, AuditEntity.PAYMENT, result.payment.id, {
+    totalAmount: Number(result.payment.totalAmount),
+    loanId: data.loanId,
+    type: data.type,
+    previousBalance: result.previousBalance,
+    newBalance: result.newBalance,
+  });
+
+  return result;
 }
 
 export async function getPaymentById(paymentId: string) {
@@ -369,7 +380,7 @@ export async function reversePayment(
   reversedById: string,
   reason: string
 ): Promise<PaymentResult> {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const originalPayment = await tx.payment.findUnique({
       where: { id: paymentId },
       include: {
@@ -433,6 +444,15 @@ export async function reversePayment(
       statusChanged: originalPayment.loan.status !== newStatus,
     };
   });
+
+  await auditLog(reversedById, AuditAction.REVERSE_PAYMENT, AuditEntity.PAYMENT, result.payment.id, {
+    originalPaymentId: paymentId,
+    loanId: result.loan.id,
+    reversedAmount: Number(result.payment.totalAmount),
+    reason,
+  });
+
+  return result;
 }
 
 export async function getPaymentsSummary(loanId: string) {

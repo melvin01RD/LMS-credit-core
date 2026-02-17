@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { cancelLoan } from "@/lib/services";
 
 /**
@@ -10,7 +10,7 @@ import { cancelLoan } from "@/lib/services";
  * Body (JSON):
  *  - userId (string) → ID del usuario que realiza la cancelación
  */
-export const POST = withErrorHandler(async (req, context) => {
+export const POST = withAuth(async (req, context) => {
   const params = await context!.params;
   const { userId } = await req.json();
 

@@ -12,6 +12,7 @@ import {
   AmortizationEntry,
 } from "../domain/loan";
 import { PaginationOptions, PaginatedResult } from "../types";
+import { auditLog, AuditAction, AuditEntity } from "./audit.service";
 
 // ============================================
 // INTERFACES
@@ -56,7 +57,7 @@ export async function createLoan(data: CreateLoanInput) {
   // Calcular primera fecha de vencimiento según frecuencia
   const nextDueDate = calculateNextDueDate(new Date(), data.paymentFrequency);
 
-  return prisma.loan.create({
+  const loan = await prisma.loan.create({
     data: {
       clientId: data.clientId,
       principalAmount: data.principalAmount,
@@ -82,6 +83,15 @@ export async function createLoan(data: CreateLoanInput) {
       },
     },
   });
+
+  await auditLog(data.createdById, AuditAction.CREATE_LOAN, AuditEntity.LOAN, loan.id, {
+    clientId: data.clientId,
+    principalAmount: data.principalAmount,
+    paymentFrequency: data.paymentFrequency,
+    termCount: data.termCount,
+  });
+
+  return loan;
 }
 
 /**
@@ -212,13 +222,20 @@ export async function cancelLoan(loanId: string, userId: string) {
     throw new Error("El préstamo ya está cancelado");
   }
 
-  return prisma.loan.update({
+  const canceledLoan = await prisma.loan.update({
     where: { id: loanId },
     data: {
       status: LoanStatus.CANCELED,
       updatedById: userId,
     },
   });
+
+  await auditLog(userId, AuditAction.CANCEL_LOAN, AuditEntity.LOAN, loanId, {
+    previousStatus: loan.status,
+    remainingCapital: Number(loan.remainingCapital),
+  });
+
+  return canceledLoan;
 }
 
 /**

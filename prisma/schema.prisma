@@ -55,6 +55,7 @@ model User {
   createdLoans Loan[] @relation("LoansCreated")
   updatedLoans Loan[] @relation("LoansUpdated")
   payments     Payment[]
+  auditLogs    AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -124,4 +125,15 @@ model Payment {
   createdAt DateTime @default(now())
 
   @@index([loanId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String   // CREATE_LOAN, REGISTER_PAYMENT, REVERSE_PAYMENT, etc.
+  entity     String   // "Loan", "Payment", "Client"
+  entityId   String   // el UUID del registro afectado
+  details    Json?    // snapshot de los datos relevantes
+  createdAt  DateTime @default(now())
 }

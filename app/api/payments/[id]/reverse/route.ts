@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { reversePayment } from "@/lib/services";
 
-export const POST = withErrorHandler(async (req, context) => {
+export const POST = withAuth(async (req, context) => {
   const params = await context!.params;
   const { reversedById, reason } = await req.json();
 

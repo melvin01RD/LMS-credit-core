@@ -5,7 +5,13 @@ import { cookies } from "next/headers";
 // CONSTANTS
 // ============================================
 
-const JWT_SECRET = process.env.JWT_SECRET || "lms-secret-key-change-in-production";
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET no está definido en las variables de entorno");
+  return secret;
+}
+
+const JWT_SECRET = getJwtSecret();
 const SESSION_COOKIE_NAME = "lms_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 días
 

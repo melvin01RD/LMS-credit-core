@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { searchClients } from "@/lib/services";
 
-export const GET = withErrorHandler(async (req) => {
+export const GET = withAuth(async (req) => {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") ?? "";
   const limit = Number(searchParams.get("limit") ?? 10);

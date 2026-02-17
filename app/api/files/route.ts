@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { getLoans, createLoan } from "@/lib/services";
 import type { LoanStatus, PaymentFrequency } from "@prisma/client";
 
@@ -15,7 +15,7 @@ import type { LoanStatus, PaymentFrequency } from "@prisma/client";
  *  - createdById (string) → filtrar por usuario que creó el préstamo
  *  - search (string)      → búsqueda por nombre/documento del cliente
  */
-export const GET = withErrorHandler(async (req) => {
+export const GET = withAuth(async (req) => {
   const { searchParams } = new URL(req.url);
 
   const filters = {
@@ -47,7 +47,7 @@ export const GET = withErrorHandler(async (req) => {
  *  - createdById (string)           → ID del usuario que crea el préstamo
  *  - guarantees? (string)           → garantías (opcional)
  */
-export const POST = withErrorHandler(async (req) => {
+export const POST = withAuth(async (req) => {
   const data = await req.json();
 
   // Validación básica de campos requeridos a nivel de API

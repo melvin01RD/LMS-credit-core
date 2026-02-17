@@ -4,3 +4,4 @@ export * from "./payment.service";
 export * from "./user.service";
 export * from "./reports.service";
 export * from "./pdf-report.service";
+export * from "./audit.service";

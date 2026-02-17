@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { getLoans } from "@/lib/services";
 
-export const GET = withErrorHandler(async (req, context) => {
+export const GET = withAuth(async (req, context) => {
   const params = await context!.params;
   const { searchParams } = new URL(req.url);
   const page = Number(searchParams.get("page") ?? 1);

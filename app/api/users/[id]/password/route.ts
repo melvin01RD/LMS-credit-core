@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { withErrorHandler } from "@/lib/api/error-handler";
+import { withAuth } from "@/lib/api/auth-middleware";
 import { changePassword, resetPassword } from "@/lib/services";
 
-export const PUT = withErrorHandler(async (req, context) => {
+export const PUT = withAuth(async (req, context) => {
   const params = await context!.params;
   const { currentPassword, newPassword, resetById } = await req.json();
 
