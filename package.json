@@ -17,6 +17,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@types/pdfkit": "^0.17.5",
     "bcryptjs": "^2.4.3",
+    "exceljs": "^4.4.0",
     "jsonwebtoken": "^9.0.2",
     "next": "^14.2.0",
     "pdfkit": "^0.17.2",

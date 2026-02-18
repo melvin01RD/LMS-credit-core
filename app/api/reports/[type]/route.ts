@@ -7,11 +7,16 @@
 //   GET /api/reports/estado-cuenta?loanId=xxx
 //   GET /api/reports/plan-pagos?loanId=xxx
 //   GET /api/reports/nota-pagare?loanId=xxx
+//   GET /api/reports/cartera-vigente
+//   GET /api/reports/cartera-vigente-excel
 // ============================================================================
 
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/auth-middleware';
 import { generatePdfReport, PdfReportType } from '@/lib/services/pdf-report.service';
+import { getCarteraVigente } from '@/lib/services/cartera-vigente.service';
+import { generateCarteraVigentePDF } from '@/lib/reports/cartera-vigente';
+import { generateCarteraVigenteExcel } from '@/lib/reports/cartera-vigente-excel';
 
 const REPORT_CONFIG: Record<PdfReportType, { paramName: string; fileName: string }> = {
   'recibo-pago': {
@@ -38,10 +43,47 @@ const REPORT_CONFIG: Record<PdfReportType, { paramName: string; fileName: string
 
 export const GET = withAuth(async (req, context) => {
   const params = await context!.params;
-  const reportType = params.type as PdfReportType;
+  const reportType = params.type as string;
+  const timestamp = new Date().toISOString().split('T')[0];
+
+  // -------------------------------------------------------------------------
+  // Reportes globales (sin entityId): Cartera Vigente
+  // -------------------------------------------------------------------------
+  if (reportType === 'cartera-vigente') {
+    const data = await getCarteraVigente();
+    const buffer = await generateCarteraVigentePDF(data);
+    return new NextResponse(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="Cartera_Vigente_${timestamp}.pdf"`,
+        'Content-Length': buffer.length.toString(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    });
+  }
+
+  if (reportType === 'cartera-vigente-excel') {
+    const data = await getCarteraVigente();
+    const buffer = await generateCarteraVigenteExcel(data);
+    return new NextResponse(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="Cartera_Vigente_${timestamp}.xlsx"`,
+        'Content-Length': buffer.length.toString(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Reportes por entidad (requieren entityId)
+  // -------------------------------------------------------------------------
+  const pdfReportType = reportType as PdfReportType;
 
   // Validar tipo de reporte
-  const config = REPORT_CONFIG[reportType];
+  const config = REPORT_CONFIG[pdfReportType];
   if (!config) {
     return NextResponse.json(
       { error: { code: 'INVALID_REPORT_TYPE', message: `Tipo de reporte no válido: ${reportType}` } },
@@ -61,10 +103,9 @@ export const GET = withAuth(async (req, context) => {
   }
 
   // Generar el PDF
-  const pdfBuffer = await generatePdfReport(reportType, entityId);
+  const pdfBuffer = await generatePdfReport(pdfReportType, entityId);
 
   // Construir nombre del archivo
-  const timestamp = new Date().toISOString().split('T')[0];
   const fileName = `${config.fileName}_${timestamp}.pdf`;
 
   // Retornar el PDF como respuesta
