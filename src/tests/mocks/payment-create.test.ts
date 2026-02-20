@@ -19,6 +19,9 @@ function setupTransaction(
   payment?: ReturnType<typeof createMockPayment>,
   updatedLoan?: ReturnType<typeof createMockLoan>
 ) {
+  // createPayment now does an outer loan.findUnique before entering the tx
+  prismaMock.loan.findUnique.mockResolvedValue(loan);
+
   prismaMock.$transaction.mockImplementation(async (callback: any) => {
     const txMock = {
       loan: {
@@ -27,6 +30,11 @@ function setupTransaction(
       },
       payment: {
         create: vi.fn().mockResolvedValue(payment),
+      },
+      // createFrenchPayment marks the first pending schedule entry as PAID
+      paymentSchedule: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        update: vi.fn().mockResolvedValue({}),
       },
     };
     return callback(txMock);

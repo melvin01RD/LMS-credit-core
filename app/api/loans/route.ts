@@ -20,7 +20,23 @@ export const GET = withAuth(async (req) => {
 });
 
 export const POST = withAuth(async (req) => {
-  const data = await req.json();
-  const loan = await createLoan(data);
+  const body = await req.json();
+  const loanStructure = body.loanStructure ?? "FRENCH_AMORTIZATION";
+
+  if (loanStructure === "FRENCH_AMORTIZATION" && !body.annualInterestRate) {
+    return NextResponse.json(
+      { error: "annualInterestRate es requerido para amortización francesa" },
+      { status: 400 }
+    );
+  }
+
+  if (loanStructure === "FLAT_RATE" && body.totalFinanceCharge == null) {
+    return NextResponse.json(
+      { error: "totalFinanceCharge es requerido para Flat Rate" },
+      { status: 400 }
+    );
+  }
+
+  const loan = await createLoan({ ...body, loanStructure });
   return NextResponse.json(loan, { status: 201 });
 });

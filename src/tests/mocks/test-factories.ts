@@ -1,4 +1,4 @@
-import { LoanStatus, PaymentFrequency, PaymentType } from "@prisma/client";
+import { LoanStatus, PaymentFrequency, LoanStructure, ScheduleStatus, PaymentType } from "@prisma/client";
 
 // ============================================
 // TEST DATA FACTORIES
@@ -52,6 +52,86 @@ export const createMockClient = (overrides = {}) => ({
   updatedAt: new Date(),
   ...overrides,
 });
+
+export const createMockFlatRateLoan = (overrides = {}) => ({
+  id: "loan-flat-1",
+  clientId: "client-1",
+  loanStructure: LoanStructure.FLAT_RATE,
+  principalAmount: 10000,
+  annualInterestRate: null,
+  totalFinanceCharge: 3500,
+  totalPayableAmount: 13500,
+  paymentFrequency: PaymentFrequency.DAILY,
+  termCount: 45,
+  installmentAmount: 300,
+  remainingCapital: 13500,
+  installmentsPaid: 0,
+  nextDueDate: new Date(Date.now() + 86400000),
+  status: LoanStatus.ACTIVE,
+  guarantees: null,
+  createdById: "user-1",
+  updatedById: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ...overrides,
+});
+
+export const createMockFlatRateWeeklyLoan = (overrides = {}) => ({
+  id: "loan-flat-weekly-1",
+  clientId: "client-1",
+  loanStructure: LoanStructure.FLAT_RATE,
+  principalAmount: 10000,
+  annualInterestRate: null,
+  totalFinanceCharge: 2000,
+  totalPayableAmount: 12000,
+  paymentFrequency: PaymentFrequency.WEEKLY,
+  termCount: 8,
+  installmentAmount: 1500,
+  remainingCapital: 12000,
+  installmentsPaid: 0,
+  nextDueDate: new Date(Date.now() + 7 * 86400000),
+  status: LoanStatus.ACTIVE,
+  guarantees: null,
+  createdById: "user-1",
+  updatedById: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ...overrides,
+});
+
+export const createMockScheduleEntry = (overrides = {}) => ({
+  id: "schedule-1",
+  loanId: "loan-flat-1",
+  installmentNumber: 1,
+  dueDate: new Date(Date.now() + 86400000),
+  expectedAmount: 300,
+  principalExpected: 222.22,
+  interestExpected: 77.78,
+  status: ScheduleStatus.PENDING,
+  paidAt: null,
+  paymentId: null,
+  ...overrides,
+});
+
+export const createMockSchedule = (
+  loanId: string,
+  count: number,
+  installmentAmount: number,
+  startDate: Date = new Date(),
+  paidCount: number = 0
+) =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `schedule-${i + 1}`,
+    loanId,
+    installmentNumber: i + 1,
+    dueDate: new Date(startDate.getTime() + (i + 1) * 86400000),
+    expectedAmount: installmentAmount,
+    principalExpected: Math.round(installmentAmount * 0.74 * 100) / 100,
+    interestExpected: Math.round(installmentAmount * 0.26 * 100) / 100,
+    status: i < paidCount ? ScheduleStatus.PAID : ScheduleStatus.PENDING,
+    paidAt: i < paidCount ? new Date() : null,
+    paymentId: i < paidCount ? `payment-${i + 1}` : null,
+  }));
 
 /**
  * Helper para crear el mock de transacción con loan y payment

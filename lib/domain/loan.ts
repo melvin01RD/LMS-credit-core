@@ -56,6 +56,9 @@ export function calculateNextDueDate(
   const nextDate = new Date(fromDate);
 
   switch (frequency) {
+    case PaymentFrequency.DAILY:
+      nextDate.setDate(nextDate.getDate() + 1);
+      break;
     case PaymentFrequency.WEEKLY:
       nextDate.setDate(nextDate.getDate() + 7);
       break;
@@ -125,6 +128,7 @@ export function calculateLateFee(
  */
 export function getPeriodicRate(annualRate: number, frequency: PaymentFrequency): number {
   const periodsPerYear = {
+    [PaymentFrequency.DAILY]: 365,
     [PaymentFrequency.WEEKLY]: 52,
     [PaymentFrequency.BIWEEKLY]: 26,
     [PaymentFrequency.MONTHLY]: 12,

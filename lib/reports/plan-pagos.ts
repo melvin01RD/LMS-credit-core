@@ -21,9 +21,11 @@ export interface PlanPagosData {
 
   // Prestamo
   montoOriginal: number;
-  tasaAnual: number;
+  tasaAnual?: number;               // solo FRENCH_AMORTIZATION
+  totalFinanceCharge?: number;      // solo FLAT_RATE
+  loanStructure?: string;           // 'FRENCH_AMORTIZATION' | 'FLAT_RATE'
   frecuencia: string;
-  frecuenciaEnum: string; // WEEKLY | BIWEEKLY | MONTHLY
+  frecuenciaEnum: string; // DAILY | WEEKLY | BIWEEKLY | MONTHLY
   totalCuotas: number;
   montoCuota: number;
   fechaInicio: string;
@@ -68,6 +70,7 @@ function getTimestamp(): string {
 
 function getPeriodsPerYear(freq: string): number {
   switch (freq) {
+    case 'DAILY': return 365;
     case 'WEEKLY': return 52;
     case 'BIWEEKLY': return 26;
     case 'MONTHLY': return 12;
@@ -78,6 +81,9 @@ function getPeriodsPerYear(freq: string): number {
 function addPeriod(date: Date, freq: string): Date {
   const d = new Date(date);
   switch (freq) {
+    case 'DAILY':
+      d.setDate(d.getDate() + 1);
+      break;
     case 'WEEKLY':
       d.setDate(d.getDate() + 7);
       break;
@@ -97,7 +103,7 @@ function formatDateShort(date: Date): string {
 
 function calculateAmortization(data: PlanPagosData): AmortizationRow[] {
   const periodsPerYear = getPeriodsPerYear(data.frecuenciaEnum);
-  const periodicRate = (data.tasaAnual / 100) / periodsPerYear;
+  const periodicRate = ((data.tasaAnual ?? 0) / 100) / periodsPerYear;
   const n = data.totalCuotas;
   let balance = data.montoOriginal;
 
@@ -208,98 +214,175 @@ export function generatePlanPagosPDF(data: PlanPagosData): Promise<Buffer> {
       drawField(col1X, rowY, 'Cliente:', data.clienteNombre);
       drawField(col1X, rowY + 15, 'Documento:', data.clienteDocumento);
 
+      const isFlat = data.loanStructure === 'FLAT_RATE';
       drawField(col2X, rowY, 'Monto:', formatCurrency(data.montoOriginal));
-      drawField(col2X, rowY + 15, 'Tasa Anual:', `${data.tasaAnual}% | ${data.frecuencia} | ${data.totalCuotas} cuotas`);
+      drawField(
+        col2X, rowY + 15,
+        isFlat ? 'Cargo Financiero:' : 'Tasa Anual:',
+        isFlat
+          ? `${formatCurrency(data.totalFinanceCharge ?? 0)} | ${data.frecuencia} | ${data.totalCuotas} cuotas`
+          : `${data.tasaAnual ?? 0}% | ${data.frecuencia} | ${data.totalCuotas} cuotas`
+      );
 
       y += infoHeight + 15;
 
       // =========================================================
-      // TABLA DE AMORTIZACION
+      // TABLA DE PAGOS
       // =========================================================
-      const rows = calculateAmortization(data);
-      const tableHeaders = ['No.', 'Fecha Vencimiento', 'Cuota', 'Capital', 'Interes', 'Balance'];
-      const colWidths = [35, 100, 85, 85, 80, 85];
-
-      const thH = 24;
-      doc.rect(margin, y, contentWidth, thH).fill(COLORS.primary);
-
-      let hx = margin;
-      tableHeaders.forEach((h, i) => {
-        doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
-          .text(h, hx + 6, y + 8, { width: colWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
-        hx += colWidths[i];
-      });
-
-      y += thH;
-
       const rowH = 18;
-      let totalCuota = 0, totalCapital = 0, totalInteres = 0;
 
-      rows.forEach((row, idx) => {
-        if (y + rowH > pageHeight - 60) {
-          doc.addPage();
-          y = margin;
+      if (isFlat) {
+        // Flat Rate: simplified table — No. | Fecha | Cuota
+        const flatHeaders = ['No.', 'Fecha Vencimiento', 'Cuota'];
+        const flatColWidths = [50, 200, 280];
 
-          // Re-draw table header on new page
-          doc.rect(margin, y, contentWidth, thH).fill(COLORS.primary);
-          let nhx = margin;
-          tableHeaders.forEach((h, i) => {
-            doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
-              .text(h, nhx + 6, y + 8, { width: colWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
-            nhx += colWidths[i];
+        const thH = 24;
+        doc.rect(margin, y, contentWidth, thH).fill(COLORS.primary);
+        let hx = margin;
+        flatHeaders.forEach((h, i) => {
+          doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
+            .text(h, hx + 6, y + 8, { width: flatColWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
+          hx += flatColWidths[i];
+        });
+        y += thH;
+
+        let dueDate = new Date(data.fechaInicio);
+        for (let i = 1; i <= data.totalCuotas; i++) {
+          if (y + rowH > pageHeight - 60) {
+            doc.addPage();
+            y = margin;
+            doc.rect(margin, y, contentWidth, thH).fill(COLORS.primary);
+            let nhx = margin;
+            flatHeaders.forEach((h, j) => {
+              doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
+                .text(h, nhx + 6, y + 8, { width: flatColWidths[j] - 12, align: j >= 2 ? 'right' : 'left' });
+              nhx += flatColWidths[j];
+            });
+            y += thH;
+          }
+
+          dueDate = addPeriod(dueDate, data.frecuenciaEnum);
+          const bg = i % 2 === 0 ? COLORS.lightGray : COLORS.white;
+          doc.rect(margin, y, contentWidth, rowH).fill(bg);
+
+          let rx = margin;
+          const vals = [String(i), formatDateShort(dueDate), formatCurrency(data.montoCuota)];
+          vals.forEach((v, j) => {
+            doc.font('Helvetica').fontSize(7).fillColor(COLORS.textDark)
+              .text(v, rx + 6, y + 5, { width: flatColWidths[j] - 12, align: j >= 2 ? 'right' : 'left' });
+            rx += flatColWidths[j];
           });
-          y += thH;
+
+          doc.moveTo(margin, y + rowH).lineTo(margin + contentWidth, y + rowH)
+            .strokeColor(COLORS.divider).lineWidth(0.3).stroke();
+          y += rowH;
         }
 
-        const bg = idx % 2 === 0 ? COLORS.lightGray : COLORS.white;
-        doc.rect(margin, y, contentWidth, rowH).fill(bg);
-
-        let rx = margin;
-        const vals = [
-          String(row.numero),
-          row.fechaVencimiento,
-          formatCurrency(row.cuota),
-          formatCurrency(row.capital),
-          formatCurrency(row.interes),
-          formatCurrency(row.balance),
-        ];
-
-        vals.forEach((v, i) => {
-          doc.font('Helvetica').fontSize(7).fillColor(COLORS.textDark)
-            .text(v, rx + 6, y + 5, { width: colWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
-          rx += colWidths[i];
+        // Totals row (flat)
+        if (y + 24 > pageHeight - 60) { doc.addPage(); y = margin; }
+        doc.rect(margin, y, contentWidth, 24).fill(COLORS.primary);
+        let tx = margin;
+        const flatTotals = ['', 'TOTALES', formatCurrency(data.montoCuota * data.totalCuotas)];
+        flatTotals.forEach((v, i) => {
+          doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
+            .text(v, tx + 6, y + 8, { width: flatColWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
+          tx += flatColWidths[i];
         });
 
-        doc.moveTo(margin, y + rowH).lineTo(margin + contentWidth, y + rowH)
-          .strokeColor(COLORS.divider).lineWidth(0.3).stroke();
+        // Info row: capital + cargo
+        y += 30;
+        doc.roundedRect(margin, y, contentWidth, 30, 4).fill(COLORS.lightBg);
+        doc.font('Helvetica').fontSize(8).fillColor(COLORS.textGray)
+          .text(
+            `Capital: ${formatCurrency(data.montoOriginal)}   +   Cargo Financiero: ${formatCurrency(data.totalFinanceCharge ?? 0)}   =   Total a Pagar: ${formatCurrency(data.montoCuota * data.totalCuotas)}`,
+            margin + 12, y + 10,
+            { width: contentWidth - 24, align: 'center' }
+          );
+      } else {
+        // French: full amortization table
+        const rows = calculateAmortization(data);
+        const tableHeaders = ['No.', 'Fecha Vencimiento', 'Cuota', 'Capital', 'Interes', 'Balance'];
+        const colWidths = [35, 100, 85, 85, 80, 85];
 
-        totalCuota += row.cuota;
-        totalCapital += row.capital;
-        totalInteres += row.interes;
+        const thH = 24;
+        doc.rect(margin, y, contentWidth, thH).fill(COLORS.primary);
 
-        y += rowH;
-      });
+        let hx = margin;
+        tableHeaders.forEach((h, i) => {
+          doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
+            .text(h, hx + 6, y + 8, { width: colWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
+          hx += colWidths[i];
+        });
 
-      // Totals row
-      if (y + 24 > pageHeight - 60) {
-        doc.addPage();
-        y = margin;
+        y += thH;
+
+        let totalCuota = 0, totalCapital = 0, totalInteres = 0;
+
+        rows.forEach((row, idx) => {
+          if (y + rowH > pageHeight - 60) {
+            doc.addPage();
+            y = margin;
+
+            doc.rect(margin, y, contentWidth, thH).fill(COLORS.primary);
+            let nhx = margin;
+            tableHeaders.forEach((h, i) => {
+              doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
+                .text(h, nhx + 6, y + 8, { width: colWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
+              nhx += colWidths[i];
+            });
+            y += thH;
+          }
+
+          const bg = idx % 2 === 0 ? COLORS.lightGray : COLORS.white;
+          doc.rect(margin, y, contentWidth, rowH).fill(bg);
+
+          let rx = margin;
+          const vals = [
+            String(row.numero),
+            row.fechaVencimiento,
+            formatCurrency(row.cuota),
+            formatCurrency(row.capital),
+            formatCurrency(row.interes),
+            formatCurrency(row.balance),
+          ];
+
+          vals.forEach((v, i) => {
+            doc.font('Helvetica').fontSize(7).fillColor(COLORS.textDark)
+              .text(v, rx + 6, y + 5, { width: colWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
+            rx += colWidths[i];
+          });
+
+          doc.moveTo(margin, y + rowH).lineTo(margin + contentWidth, y + rowH)
+            .strokeColor(COLORS.divider).lineWidth(0.3).stroke();
+
+          totalCuota += row.cuota;
+          totalCapital += row.capital;
+          totalInteres += row.interes;
+
+          y += rowH;
+        });
+
+        // Totals row
+        if (y + 24 > pageHeight - 60) {
+          doc.addPage();
+          y = margin;
+        }
+
+        doc.rect(margin, y, contentWidth, 24).fill(COLORS.primary);
+        let tx = margin;
+        const totals = [
+          '', 'TOTALES',
+          formatCurrency(totalCuota),
+          formatCurrency(totalCapital),
+          formatCurrency(totalInteres),
+          '',
+        ];
+        totals.forEach((v, i) => {
+          doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
+            .text(v, tx + 6, y + 8, { width: colWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
+          tx += colWidths[i];
+        });
       }
-
-      doc.rect(margin, y, contentWidth, 24).fill(COLORS.primary);
-      let tx = margin;
-      const totals = [
-        '', 'TOTALES',
-        formatCurrency(totalCuota),
-        formatCurrency(totalCapital),
-        formatCurrency(totalInteres),
-        '',
-      ];
-      totals.forEach((v, i) => {
-        doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLORS.white)
-          .text(v, tx + 6, y + 8, { width: colWidths[i] - 12, align: i >= 2 ? 'right' : 'left' });
-        tx += colWidths[i];
-      });
 
       // =========================================================
       // FOOTER

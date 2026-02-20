@@ -20,6 +20,7 @@ describe("Edge Cases - Payment Processing", () => {
     });
     const updatedLoan = createMockLoan({ remainingCapital: 920.35 });
 
+    prismaMock.loan.findUnique.mockResolvedValue(mockLoan);
     prismaMock.$transaction.mockImplementation(async (callback) => {
       const txMock = {
         loan: {
@@ -28,6 +29,10 @@ describe("Edge Cases - Payment Processing", () => {
         },
         payment: {
           create: vi.fn().mockResolvedValue(mockPayment),
+        },
+        paymentSchedule: {
+          findFirst: vi.fn().mockResolvedValue(null),
+          update: vi.fn().mockResolvedValue({}),
         },
       };
       return callback(txMock);
@@ -55,6 +60,7 @@ describe("Edge Cases - Payment Processing", () => {
     });
     const updatedLoan = createMockLoan({ remainingCapital: 4000 });
 
+    prismaMock.loan.findUnique.mockResolvedValue(mockLoan);
     prismaMock.$transaction.mockImplementation(async (callback) => {
       const txMock = {
         loan: {
@@ -63,6 +69,10 @@ describe("Edge Cases - Payment Processing", () => {
         },
         payment: {
           create: vi.fn().mockResolvedValue(mockPayment),
+        },
+        paymentSchedule: {
+          findFirst: vi.fn().mockResolvedValue(null),
+          update: vi.fn().mockResolvedValue({}),
         },
       };
       return callback(txMock);

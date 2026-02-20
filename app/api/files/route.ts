@@ -92,6 +92,7 @@ export const POST = withAuth(async (req) => {
   }
 
   const loan = await createLoan({
+    loanStructure: "FRENCH_AMORTIZATION",
     clientId: data.clientId,
     principalAmount: data.principalAmount,
     annualInterestRate: data.annualInterestRate,

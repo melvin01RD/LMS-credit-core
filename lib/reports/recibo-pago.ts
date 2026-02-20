@@ -26,7 +26,7 @@ export interface ReciboPagoData {
   clienteDomicilio: string;
 
   // Préstamo
-  esquemaPago: 'Semanal' | 'Quincenal' | 'Mensual';
+  esquemaPago: string;
   pagoNumero: number;
   totalPagos: number;
 

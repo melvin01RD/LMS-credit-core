@@ -38,8 +38,9 @@ function formatDate(date: Date): string {
   return `${day}/${month}/${year}`;
 }
 
-function getEsquemaLabel(frequency: string): 'Semanal' | 'Quincenal' | 'Mensual' {
-  const map: Record<string, 'Semanal' | 'Quincenal' | 'Mensual'> = {
+function getEsquemaLabel(frequency: string): string {
+  const map: Record<string, string> = {
+    DAILY: 'Diaria',
     WEEKLY: 'Semanal',
     BIWEEKLY: 'Quincenal',
     MONTHLY: 'Mensual',
@@ -51,6 +52,7 @@ function calculateFinalDueDate(startDate: Date, frequency: string, termCount: nu
   const d = new Date(startDate);
   for (let i = 0; i < termCount; i++) {
     switch (frequency) {
+      case 'DAILY': d.setDate(d.getDate() + 1); break;
       case 'WEEKLY': d.setDate(d.getDate() + 7); break;
       case 'BIWEEKLY': d.setDate(d.getDate() + 14); break;
       case 'MONTHLY': d.setMonth(d.getMonth() + 1); break;
@@ -191,7 +193,9 @@ export async function generateEstadoCuentaReport(loanId: string): Promise<Buffer
     clienteDireccion: client.address || 'N/A',
     prestamoId: loan.id,
     montoOriginal: Number(loan.principalAmount),
-    tasaAnual: Number(loan.annualInterestRate),
+    tasaAnual: loan.annualInterestRate != null ? Number(loan.annualInterestRate) : undefined,
+    totalFinanceCharge: loan.totalFinanceCharge != null ? Number(loan.totalFinanceCharge) : undefined,
+    loanStructure: loan.loanStructure,
     frecuencia: getEsquemaLabel(loan.paymentFrequency),
     totalCuotas: loan.termCount,
     montoCuota: Number(loan.installmentAmount),
@@ -232,7 +236,9 @@ export async function generatePlanPagosReport(loanId: string): Promise<Buffer> {
     clienteNombre: `${client.firstName} ${client.lastName ?? ''}`.trim(),
     clienteDocumento: client.documentId,
     montoOriginal: Number(loan.principalAmount),
-    tasaAnual: Number(loan.annualInterestRate),
+    tasaAnual: loan.annualInterestRate != null ? Number(loan.annualInterestRate) : undefined,
+    totalFinanceCharge: loan.totalFinanceCharge != null ? Number(loan.totalFinanceCharge) : undefined,
+    loanStructure: loan.loanStructure,
     frecuencia: getEsquemaLabel(loan.paymentFrequency),
     frecuenciaEnum: loan.paymentFrequency,
     totalCuotas: loan.termCount,
@@ -314,7 +320,9 @@ export async function generateContratoReport(loanId: string): Promise<Buffer> {
     clienteDireccion: client.address || 'N/A',
     clienteTelefono: client.phone || 'N/A',
     montoOriginal: Number(loan.principalAmount),
-    tasaAnual: Number(loan.annualInterestRate),
+    tasaAnual: loan.annualInterestRate != null ? Number(loan.annualInterestRate) : undefined,
+    totalFinanceCharge: loan.totalFinanceCharge != null ? Number(loan.totalFinanceCharge) : undefined,
+    loanStructure: loan.loanStructure,
     frecuencia: getEsquemaLabel(loan.paymentFrequency),
     totalCuotas: loan.termCount,
     montoCuota: Number(loan.installmentAmount),
