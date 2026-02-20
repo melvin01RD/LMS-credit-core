@@ -1,5 +1,5 @@
 import { prisma } from "../db/prisma";
-import { LoanStatus } from "@prisma/client";
+import { LoanStatus, LoanStructure, ScheduleStatus } from "@prisma/client";
 
 // ============================================
 // INTERFACES
@@ -306,6 +306,57 @@ function calculatePortfolioDistribution(loans: any[]): PortfolioDistribution[] {
     percentage: total > 0 ? (data.count / total) * 100 : 0,
     amount: data.amount,
   }));
+}
+
+// ============================================
+// FLAT RATE METRICS
+// ============================================
+
+export interface FlatRateMetrics {
+  cobrosHoy: number;         // pagos cobrados hoy de préstamos Flat Rate
+  cuotasVencidas: number;    // cuotas con status OVERDUE
+  montoVencido: number;      // monto total de cuotas vencidas
+  cartеraActiva: number;     // capital pendiente de préstamos Flat Rate activos
+  prestamosActivos: number;  // count de préstamos Flat Rate activos
+}
+
+export async function getFlatRateMetrics(): Promise<FlatRateMetrics> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const [cobrosHoyResult, scheduleOverdue, activeLoans] = await Promise.all([
+    prisma.payment.findMany({
+      where: {
+        paymentDate: { gte: today, lt: tomorrow },
+        loan: { loanStructure: LoanStructure.FLAT_RATE },
+      },
+      select: { totalAmount: true },
+    }),
+    prisma.paymentSchedule.findMany({
+      where: {
+        status: ScheduleStatus.OVERDUE,
+        loan: { loanStructure: LoanStructure.FLAT_RATE },
+      },
+      select: { expectedAmount: true },
+    }),
+    prisma.loan.findMany({
+      where: {
+        loanStructure: LoanStructure.FLAT_RATE,
+        status: { in: [LoanStatus.ACTIVE, LoanStatus.OVERDUE] },
+      },
+      select: { remainingCapital: true },
+    }),
+  ]);
+
+  const cobrosHoy = cobrosHoyResult.reduce((s, p) => s + Number(p.totalAmount), 0);
+  const cuotasVencidas = scheduleOverdue.length;
+  const montoVencido = scheduleOverdue.reduce((s, e) => s + Number(e.expectedAmount), 0);
+  const cartеraActiva = activeLoans.reduce((s, l) => s + Number(l.remainingCapital), 0);
+  const prestamosActivos = activeLoans.length;
+
+  return { cobrosHoy, cuotasVencidas, montoVencido, cartеraActiva, prestamosActivos };
 }
 
 function getUpcomingPayments(loans: any[]): UpcomingPayment[] {

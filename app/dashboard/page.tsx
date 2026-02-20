@@ -55,9 +55,18 @@ interface DashboardMetrics {
   }[];
 }
 
+interface FlatRateMetrics {
+  cobrosHoy: number;
+  cuotasVencidas: number;
+  montoVencido: number;
+  cartеraActiva: number;
+  prestamosActivos: number;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [flatRateMetrics, setFlatRateMetrics] = useState<FlatRateMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,10 +78,17 @@ export default function DashboardPage() {
 
   async function fetchMetrics() {
     try {
-      const res = await fetch("/api/reports/dashboard");
+      const [res, flatRes] = await Promise.all([
+        fetch("/api/reports/dashboard"),
+        fetch("/api/dashboard/flat-rate"),
+      ]);
       if (res.ok) {
         const data = await res.json();
         setMetrics(data);
+      }
+      if (flatRes.ok) {
+        const flatData = await flatRes.json();
+        setFlatRateMetrics(flatData);
       }
     } catch (error) {
       console.error("Error fetching metrics:", error);
@@ -224,6 +240,52 @@ export default function DashboardPage() {
           }
         />
       </div>
+
+      {/* Métricas Flat Rate */}
+      {flatRateMetrics && (
+        <div className="flat-rate-section">
+          <h2 className="section-title">Cartera Cargo Fijo (Flat Rate)</h2>
+          <div className="metrics-grid">
+            <MetricCard
+              title="Cobros Hoy"
+              value={`RD$ ${fmtShort(flatRateMetrics.cobrosHoy)}`}
+              color="green"
+              subtitle="Pagos recibidos hoy"
+              icon={
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                  <line x1="1" y1="10" x2="23" y2="10" />
+                </svg>
+              }
+            />
+            <MetricCard
+              title="Cuotas Vencidas"
+              value={flatRateMetrics.cuotasVencidas}
+              color="red"
+              subtitle={`RD$ ${fmtShort(flatRateMetrics.montoVencido)} en mora`}
+              icon={
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              }
+            />
+            <MetricCard
+              title="Cartera Activa"
+              value={`RD$ ${fmtShort(flatRateMetrics.cartеraActiva)}`}
+              color="blue"
+              subtitle={`${flatRateMetrics.prestamosActivos} préstamos activos`}
+              icon={
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="12" y1="1" x2="12" y2="23" />
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              }
+            />
+          </div>
+        </div>
+      )}
 
       {/* Gráficos */}
       <div className="charts-grid">
@@ -438,6 +500,29 @@ export default function DashboardPage() {
           grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 20px;
           margin-bottom: 24px;
+        }
+
+        .flat-rate-section {
+          margin-bottom: 24px;
+        }
+
+        .section-title {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #374151;
+          margin: 0 0 14px 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .section-title::before {
+          content: "";
+          display: inline-block;
+          width: 4px;
+          height: 18px;
+          background: #2563eb;
+          border-radius: 2px;
         }
 
         .charts-grid {
