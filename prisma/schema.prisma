@@ -65,10 +65,11 @@ model User {
   role      UserRole @default(OPERATOR)
   active    Boolean  @default(true)
 
-  createdLoans Loan[] @relation("LoansCreated")
-  updatedLoans Loan[] @relation("LoansUpdated")
-  payments     Payment[]
-  auditLogs    AuditLog[]
+  createdLoans    Loan[] @relation("LoansCreated")
+  updatedLoans    Loan[] @relation("LoansUpdated")
+  payments        Payment[]
+  auditLogs       AuditLog[]
+  systemConfigs   SystemConfig[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -174,6 +175,36 @@ model PaymentSchedule {
 
   @@index([loanId])
   @@index([status])
+}
+
+enum LateFeeType {
+  PERCENTAGE_DAILY   // % diario sobre el monto vencido
+  FIXED              // monto fijo por cuota vencida
+}
+
+model SystemConfig {
+  id                   String      @id @default("singleton")
+
+  // Datos del negocio
+  businessName         String      @default("Mi Negocio")
+  rnc                  String?
+  address              String?
+  phone                String?
+  email                String?
+
+  // Parámetros de mora
+  lateFeeType          LateFeeType @default(PERCENTAGE_DAILY)
+  lateFeeValue         Decimal     @default(0) @db.Decimal(5, 2)
+  gracePeriodDays      Int         @default(0)
+
+  // Tasas de interés por defecto (pre-cargan el form de nuevo préstamo)
+  defaultMonthlyRate   Decimal?    @db.Decimal(5, 2)
+  defaultWeeklyRate    Decimal?    @db.Decimal(5, 2)
+  defaultDailyRate     Decimal?    @db.Decimal(5, 2)
+
+  updatedAt            DateTime    @updatedAt
+  updatedById          String?
+  updatedBy            User?       @relation(fields: [updatedById], references: [id])
 }
 
 model AuditLog {

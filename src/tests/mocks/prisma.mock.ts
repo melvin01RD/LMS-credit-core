@@ -53,6 +53,12 @@ export const prismaMock = {
     count: vi.fn(),
   },
 
+  // SystemConfig operations
+  systemConfig: {
+    upsert: vi.fn(),
+    findUnique: vi.fn(),
+  },
+
   // AuditLog operations
   auditLog: {
     create: vi.fn().mockResolvedValue({

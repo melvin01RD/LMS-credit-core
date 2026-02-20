@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { withAuth } from "@/lib/api/auth-middleware";
+import { withRole } from "@/lib/api/role-middleware";
 import { changePassword, resetPassword } from "@/lib/services";
+import { UserRole } from "@prisma/client";
 
-export const PUT = withAuth(async (req, context) => {
+export const PUT = withRole([UserRole.ADMIN], async (req, context) => {
   const params = await context!.params;
   const { currentPassword, newPassword, resetById } = await req.json();
 
