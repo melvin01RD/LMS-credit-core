@@ -16,6 +16,7 @@ interface LoanClient {
 
 interface Loan {
   id: string;
+  loanStructure: string;
   principalAmount: string;
   annualInterestRate: string;
   paymentFrequency: string;
@@ -67,6 +68,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const FREQUENCY_LABELS: Record<string, string> = {
+  DAILY: "Diaria",
   WEEKLY: "Semanal",
   BIWEEKLY: "Quincenal",
   MONTHLY: "Mensual",
@@ -176,7 +178,7 @@ export default function LoansPage() {
             <tr>
               <th>Cliente</th>
               <th>Monto</th>
-              <th>Tasa</th>
+              <th>Tipo / Tasa</th>
               <th>Frecuencia</th>
               <th>Cuota</th>
               <th>Pendiente</th>
@@ -214,7 +216,11 @@ export default function LoansPage() {
                       </div>
                     </td>
                     <td className="td-bold">RD$ {fmt(Number(loan.principalAmount))}</td>
-                    <td>{Number(loan.annualInterestRate)}%</td>
+                    <td>
+                      {loan.loanStructure === "FLAT_RATE"
+                        ? <span className="badge-flat">Cargo Fijo</span>
+                        : `${Number(loan.annualInterestRate)}%`}
+                    </td>
                     <td>{FREQUENCY_LABELS[loan.paymentFrequency] ?? loan.paymentFrequency}</td>
                     <td>RD$ {fmt(Number(loan.installmentAmount))}</td>
                     <td>RD$ {fmt(Number(loan.remainingCapital))}</td>
@@ -490,6 +496,16 @@ export default function LoansPage() {
           font-size: 0.825rem;
           color: #6b7280;
         }
+
+        .badge-flat {
+          font-size: 0.7rem;
+          font-weight: 600;
+          padding: 2px 8px;
+          border-radius: 10px;
+          background: #f3f4f6;
+          color: #6b7280;
+          white-space: nowrap;
+        }
       `}</style>
     </div>
   );
@@ -749,15 +765,15 @@ function CreateLoanModal({
                 onClick={() => setLoanStructure("FRENCH_AMORTIZATION")}
               >
                 <span className="loan-type-name">Amortización Francesa</span>
-                <span className="loan-type-desc">Interés sobre saldo</span>
+                <span className="loan-type-desc">Interés sobre saldo — pagos mensuales/quincenales</span>
               </button>
               <button
                 type="button"
                 className={`loan-type-btn${form.loanStructure === "FLAT_RATE" ? " active" : ""}`}
                 onClick={() => setLoanStructure("FLAT_RATE")}
               >
-                <span className="loan-type-name">Cargo Fijo</span>
-                <span className="loan-type-desc">Cargo financiero fijo</span>
+                <span className="loan-type-name">Cargo Fijo (Moto Concho)</span>
+                <span className="loan-type-desc">Cargo financiero fijo — pagos diarios/semanales</span>
               </button>
             </div>
           </div>

@@ -7,12 +7,13 @@ import { useRouter } from "next/navigation";
 // ============================================
 
 function CarteraVigenteCard() {
-  function handleDownload(type: 'cartera-vigente' | 'cartera-vigente-excel') {
+  function handleDownload(type: 'cartera-vigente' | 'cartera-vigente-excel', e: React.MouseEvent) {
+    e.stopPropagation();
     window.open(`/api/reports/${type}`, '_blank');
   }
 
   return (
-    <div className="report-card report-card--available report-card--dual">
+    <div className="report-card report-card--available">
       <div className="report-card-header">
         <div className="report-card-icon icon-active">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -29,28 +30,19 @@ function CarteraVigenteCard() {
         Préstamos activos, capital en la calle y estado de recuperación
       </p>
 
-      <div className="cartera-actions">
+      <div className="report-card-action">
         <button
-          className="btn-pdf"
-          onClick={() => handleDownload('cartera-vigente')}
+          onClick={(e) => handleDownload('cartera-vigente', e)}
+          style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.825rem', fontWeight: 600, color: '#2563eb', cursor: 'pointer' }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-          </svg>
-          Descargar PDF
+          📄 Descargar PDF
         </button>
+        <span style={{ color: '#d1d5db', fontWeight: 400 }}>|</span>
         <button
-          className="btn-excel"
-          onClick={() => handleDownload('cartera-vigente-excel')}
+          onClick={(e) => handleDownload('cartera-vigente-excel', e)}
+          style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.825rem', fontWeight: 600, color: '#16a34a', cursor: 'pointer' }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="8" y1="13" x2="16" y2="13" />
-            <line x1="8" y1="17" x2="16" y2="17" />
-          </svg>
-          Descargar Excel
+          📊 Descargar Excel
         </button>
       </div>
     </div>
@@ -301,51 +293,6 @@ export default function ReportesPage() {
           font-size: 0.825rem;
           font-weight: 600;
           color: #2563eb;
-        }
-
-        .report-card--dual {
-          cursor: default;
-        }
-        .report-card--dual:hover {
-          transform: none;
-        }
-
-        .cartera-actions {
-          display: flex;
-          gap: 8px;
-          margin-top: 14px;
-          padding-top: 14px;
-          border-top: 1px solid #f3f4f6;
-        }
-
-        .btn-pdf,
-        .btn-excel {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          flex: 1;
-          justify-content: center;
-          padding: 7px 10px;
-          border-radius: 8px;
-          border: none;
-          font-size: 0.78rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: opacity 0.15s ease;
-        }
-        .btn-pdf:hover,
-        .btn-excel:hover {
-          opacity: 0.85;
-        }
-
-        .btn-pdf {
-          background: #eff6ff;
-          color: #2563eb;
-        }
-
-        .btn-excel {
-          background: #f0fdf4;
-          color: #16a34a;
         }
 
         @media (max-width: 640px) {
