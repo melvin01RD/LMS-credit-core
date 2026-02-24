@@ -32,6 +32,7 @@ export const createMockPayment = (overrides = {}) => ({
   capitalApplied: 800,
   interestApplied: 200,
   lateFeeApplied: 0,
+  installmentsCovered: 1,
   type: PaymentType.REGULAR,
   createdById: "user-1",
   createdAt: new Date(),

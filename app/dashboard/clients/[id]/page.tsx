@@ -21,7 +21,7 @@ interface Client {
 interface Loan {
   id: string;
   principalAmount: string;
-  annualInterestRate: string;
+  totalFinanceCharge: string | null;
   paymentFrequency: string;
   termCount: number;
   installmentAmount: string;
@@ -204,7 +204,7 @@ export default function ClientDetailPage() {
                     onClick={() => router.push(`/dashboard/loans/${loan.id}`)}
                   >
                     <td className="td-bold">RD$ {fmt(Number(loan.principalAmount))}</td>
-                    <td>{Number(loan.annualInterestRate)}%</td>
+                    <td>Cargo Fijo</td>
                     <td>{frequencyLabels[loan.paymentFrequency] ?? loan.paymentFrequency}</td>
                     <td>RD$ {fmt(Number(loan.installmentAmount))}</td>
                     <td>RD$ {fmt(Number(loan.remainingCapital))}</td>

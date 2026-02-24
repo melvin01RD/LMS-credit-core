@@ -22,9 +22,7 @@ export interface NotaPagareData {
 
   // Prestamo
   montoOriginal: number;
-  tasaAnual?: number;              // solo FRENCH_AMORTIZATION
-  totalFinanceCharge?: number;     // solo FLAT_RATE
-  loanStructure?: string;          // 'FRENCH_AMORTIZATION' | 'FLAT_RATE'
+  totalFinanceCharge?: number;
   frecuencia: string;
   totalCuotas: number;
   montoCuota: number;
@@ -184,12 +182,9 @@ export function generateNotaPagarePDF(data: NotaPagareData): Promise<Buffer> {
 
       y += 18;
 
-      const isFlat = data.loanStructure === 'FLAT_RATE';
       const conditions = [
         `El presente pagare sera pagado en ${data.totalCuotas} cuotas de ${formatCurrency(data.montoCuota)} cada una, con frecuencia ${data.frecuencia.toLowerCase()}.`,
-        isFlat
-          ? `El cargo financiero fijo aplicable es de ${formatCurrency(data.totalFinanceCharge ?? 0)}, distribuido proporcionalmente en las cuotas.`
-          : `La tasa de interes aplicable es del ${data.tasaAnual ?? 0}% anual.`,
+        `El cargo financiero fijo aplicable es de ${formatCurrency(data.totalFinanceCharge ?? 0)}, distribuido proporcionalmente en las cuotas.`,
         `La fecha del primer pago sera conforme al calendario de pagos establecido a partir del ${data.fechaDesembolso}.`,
         `La fecha de vencimiento final del presente pagare es el ${data.fechaVencimiento}.`,
       ];

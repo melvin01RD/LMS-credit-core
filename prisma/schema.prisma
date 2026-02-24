@@ -25,7 +25,6 @@ enum LoanStatus {
 }
 
 enum LoanStructure {
-  FRENCH_AMORTIZATION  // sistema francés (interés variable sobre saldo)
   FLAT_RATE            // cargo fijo desde el día 1
 }
 
@@ -97,14 +96,14 @@ model Loan {
   clientId           String
 
   // Estructura del préstamo
-  loanStructure      LoanStructure    @default(FRENCH_AMORTIZATION)
+  loanStructure      LoanStructure    @default(FLAT_RATE)
 
   principalAmount    Decimal          @db.Decimal(12, 2)
 
-  // Solo para FRENCH_AMORTIZATION (nullable — no aplica en Flat Rate)
+  // Nullable — campo legado, no aplica en Flat Rate
   annualInterestRate Decimal?         @db.Decimal(5, 2)
 
-  // Solo para FLAT_RATE
+  // Flat Rate
   totalFinanceCharge Decimal?         @db.Decimal(12, 2)
   totalPayableAmount Decimal?         @db.Decimal(12, 2)
 

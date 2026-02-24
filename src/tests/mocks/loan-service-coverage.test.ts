@@ -6,36 +6,12 @@ import {
   processOverdueLoans,
 } from "../../../lib/services/loan.service";
 import { LoanNotFoundError } from "../../../lib/errors";
-import { LoanStatus, LoanStructure, PaymentFrequency, ScheduleStatus } from "@prisma/client";
+import { LoanStatus, ScheduleStatus } from "@prisma/client";
 import { prismaMock } from "./prisma.mock";
 import { createMockFlatRateLoan, createMockSchedule } from "./test-factories";
 
 // ============================================
-// Helper: base French loan for amortization
-// ============================================
-
-const frenchLoan = {
-  id: "loan-french-1",
-  clientId: "client-1",
-  loanStructure: LoanStructure.FRENCH_AMORTIZATION,
-  principalAmount: 10000,
-  annualInterestRate: 24,
-  paymentFrequency: PaymentFrequency.MONTHLY,
-  termCount: 12,
-  installmentAmount: 942.52,
-  remainingCapital: 10000,
-  nextDueDate: new Date("2026-03-01"),
-  status: LoanStatus.ACTIVE,
-  guarantees: null,
-  createdById: "user-1",
-  updatedById: null,
-  createdAt: new Date("2026-02-01"),
-  updatedAt: new Date(),
-};
-
-// ============================================
 // getLoanAmortization
-// Lines 462-477
 // ============================================
 
 describe("getLoanAmortization", () => {
@@ -49,28 +25,10 @@ describe("getLoanAmortization", () => {
     await expect(getLoanAmortization("non-existent")).rejects.toThrow(LoanNotFoundError);
   });
 
-  it("para FRENCH_AMORTIZATION retorna tabla de amortización con termCount entradas", async () => {
-    prismaMock.loan.findUnique.mockResolvedValue(frenchLoan);
-
-    const result = await getLoanAmortization("loan-french-1");
-
-    // generateAmortizationSchedule returns 12 entries
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(12);
-    // Each entry has the expected shape
-    expect((result as any[])[0]).toHaveProperty("installmentNumber", 1);
-    expect((result as any[])[0]).toHaveProperty("totalPayment");
-    expect((result as any[])[0]).toHaveProperty("principalPayment");
-    expect((result as any[])[0]).toHaveProperty("interestPayment");
-    expect((result as any[])[0]).toHaveProperty("remainingBalance");
-  });
-
-  it("para FLAT_RATE delega a getLoanSchedule y retorna las cuotas del schedule", async () => {
+  it("retorna las cuotas del schedule desde DB", async () => {
     const flatLoan = createMockFlatRateLoan();
     const schedule = createMockSchedule("loan-flat-1", 45, 300);
 
-    // getLoanAmortization calls loan.findUnique once
-    // then getLoanSchedule calls loan.findUnique again + paymentSchedule.findMany
     prismaMock.loan.findUnique
       .mockResolvedValueOnce(flatLoan)  // getLoanAmortization
       .mockResolvedValueOnce(flatLoan); // getLoanSchedule
@@ -86,7 +44,6 @@ describe("getLoanAmortization", () => {
 
 // ============================================
 // getOverdueLoans
-// Lines 479-495
 // ============================================
 
 describe("getOverdueLoans", () => {
@@ -97,7 +54,7 @@ describe("getOverdueLoans", () => {
   it("retorna préstamos ACTIVE con nextDueDate anterior a hoy", async () => {
     const overdueLoans = [
       {
-        ...frenchLoan,
+        ...createMockFlatRateLoan(),
         id: "loan-overdue-1",
         status: LoanStatus.ACTIVE,
         nextDueDate: new Date(Date.now() - 5 * 86400000),
@@ -128,7 +85,6 @@ describe("getOverdueLoans", () => {
 
 // ============================================
 // processOverdueLoans
-// Lines 497-523
 // ============================================
 
 describe("processOverdueLoans", () => {
@@ -189,7 +145,6 @@ describe("processOverdueLoans", () => {
 
     const result = await processOverdueLoans("user-1");
 
-    // Returns loan count, not schedule count
     expect(result.affected).toBe(7);
   });
 });

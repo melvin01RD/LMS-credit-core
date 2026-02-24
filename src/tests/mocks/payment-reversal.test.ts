@@ -5,12 +5,14 @@ import {
   PaymentNotFoundError,
   CannotReversePaymentError,
 } from "../../../lib/errors";
-import { LoanStatus, PaymentType, PaymentFrequency } from "@prisma/client";
+import { LoanStatus, PaymentType } from "@prisma/client";
 import { prismaMock } from "./prisma.mock";
-import { createMockPayment, createMockLoan, createMockClient } from "./test-factories";
+import { createMockPayment, createMockFlatRateLoan, createMockClient } from "./test-factories";
 
 // ============================================
-// Helper: setup transaction mock for reversal
+// Helper: setup transaction mock for Flat Rate reversal
+// Flat Rate reversal requires: payment.findUnique, payment.create,
+// paymentSchedule.updateMany, paymentSchedule.findFirst, loan.update
 // ============================================
 function setupReversalTransaction(
   originalPayment: any | null,
@@ -26,6 +28,10 @@ function setupReversalTransaction(
       loan: {
         update: vi.fn().mockResolvedValue(updatedLoan),
       },
+      paymentSchedule: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
     };
     return callback(txMock);
   });
@@ -38,19 +44,24 @@ describe("reversePayment", () => {
 
   it("should reverse a payment and restore loan balance", async () => {
     const originalPayment = {
-      ...createMockPayment({ capitalApplied: 800, interestApplied: 200, totalAmount: 1000 }),
-      loan: createMockLoan({ remainingCapital: 9200, status: LoanStatus.ACTIVE }),
+      ...createMockPayment({
+        capitalApplied: 222,
+        interestApplied: 78,
+        totalAmount: 300,
+        installmentsCovered: 1,
+      }),
+      loan: createMockFlatRateLoan({ remainingCapital: 13200, status: LoanStatus.ACTIVE, installmentsPaid: 1 }),
     };
 
     const reversalPayment = createMockPayment({
       id: "reversal-1",
-      totalAmount: -1000,
-      capitalApplied: -800,
-      interestApplied: -200,
+      totalAmount: -300,
+      capitalApplied: -222,
+      interestApplied: -78,
     });
 
     const updatedLoan = {
-      ...createMockLoan({ remainingCapital: 10000 }),
+      ...createMockFlatRateLoan({ remainingCapital: 13500 }),
       client: createMockClient(),
     };
 
@@ -59,19 +70,19 @@ describe("reversePayment", () => {
     const result = await reversePayment("payment-1", "user-1", "Error en el pago");
 
     expect(result.payment).toBeDefined();
-    expect(result.previousBalance).toBe(9200);
-    expect(result.newBalance).toBe(10000); // 9200 + 800 restored
+    expect(result.previousBalance).toBe(13200);
+    expect(result.newBalance).toBe(13500); // 13200 + 300 (totalAmount restored)
   });
 
   it("should reactivate a PAID loan when payment is reversed", async () => {
     const originalPayment = {
-      ...createMockPayment({ capitalApplied: 500, totalAmount: 700 }),
-      loan: createMockLoan({ remainingCapital: 0, status: LoanStatus.PAID }),
+      ...createMockPayment({ capitalApplied: 222, totalAmount: 300, installmentsCovered: 1 }),
+      loan: createMockFlatRateLoan({ remainingCapital: 0, status: LoanStatus.PAID, installmentsPaid: 45 }),
     };
 
     const reversalPayment = createMockPayment({ id: "reversal-1" });
     const updatedLoan = {
-      ...createMockLoan({ remainingCapital: 500, status: LoanStatus.ACTIVE }),
+      ...createMockFlatRateLoan({ remainingCapital: 300, status: LoanStatus.ACTIVE }),
       client: createMockClient(),
     };
 
@@ -93,7 +104,7 @@ describe("reversePayment", () => {
   it("should throw CannotReversePaymentError for canceled loan", async () => {
     const originalPayment = {
       ...createMockPayment(),
-      loan: createMockLoan({ status: LoanStatus.CANCELED }),
+      loan: createMockFlatRateLoan({ status: LoanStatus.CANCELED }),
     };
 
     setupReversalTransaction(originalPayment);

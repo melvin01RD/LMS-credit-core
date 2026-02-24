@@ -325,43 +325,24 @@ export interface LoanStructureTexts {
     installmentAmount: number;
     frequency: PaymentFrequency;
     totalFinanceCharge?: number;
-    annualRate?: number;
   }) => string;
 }
 
-export function getLoanStructureTexts(structure: "FRENCH_AMORTIZATION" | "FLAT_RATE"): LoanStructureTexts {
-  if (structure === "FLAT_RATE") {
-    return {
-      interestLabel: "Cargo Financiero",
-      interestClause:
-        "El presente préstamo conlleva un cargo financiero fijo acordado entre las partes, " +
-        "calculado sobre el monto total del capital prestado. Dicho cargo es fijo e invariable " +
-        "durante toda la vigencia del préstamo, independientemente de pagos anticipados.",
-      paymentClause: ({ termCount, installmentAmount, frequency, totalFinanceCharge }) => {
-        const freq = getFrequencyTexts(frequency);
-        const fmt = (n: number) =>
-          n.toLocaleString("es-DO", { style: "currency", currency: "DOP" });
-        return (
-          `EL DEUDOR se compromete a pagar el préstamo en ${termCount} ${freq.cuota} de ` +
-          `${fmt(installmentAmount)} cada una. El cargo financiero total acordado es de ` +
-          `${fmt(totalFinanceCharge ?? 0)}, el cual está incluido en las cuotas descritas.`
-        );
-      },
-    };
-  }
-
+export function getLoanStructureTexts(): LoanStructureTexts {
   return {
-    interestLabel: "Interés",
+    interestLabel: "Cargo Financiero",
     interestClause:
-      "El préstamo devengará una tasa de interés calculada sobre el capital pendiente de pago. " +
-      "Los intereses serán calculados conforme al sistema de amortización francés.",
-    paymentClause: ({ termCount, installmentAmount, frequency, annualRate }) => {
+      "El presente préstamo conlleva un cargo financiero fijo acordado entre las partes, " +
+      "calculado sobre el monto total del capital prestado. Dicho cargo es fijo e invariable " +
+      "durante toda la vigencia del préstamo, independientemente de pagos anticipados.",
+    paymentClause: ({ termCount, installmentAmount, frequency, totalFinanceCharge }) => {
       const freq = getFrequencyTexts(frequency);
       const fmt = (n: number) =>
         n.toLocaleString("es-DO", { style: "currency", currency: "DOP" });
       return (
         `EL DEUDOR se compromete a pagar el préstamo en ${termCount} ${freq.cuota} de ` +
-        `${fmt(installmentAmount)} cada una, con una tasa de interés del ${annualRate}% anual.`
+        `${fmt(installmentAmount)} cada una. El cargo financiero total acordado es de ` +
+        `${fmt(totalFinanceCharge ?? 0)}, el cual está incluido en las cuotas descritas.`
       );
     },
   };

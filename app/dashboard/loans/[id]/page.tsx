@@ -42,7 +42,7 @@ interface Payment {
 interface LoanDetail {
   id: string;
   principalAmount: string;
-  annualInterestRate: string;
+  totalFinanceCharge: string | null;
   paymentFrequency: string;
   termCount: number;
   installmentAmount: string;
@@ -224,7 +224,7 @@ export default function LoanDetailPage() {
               <span className="meta-sep">•</span>
               <span>{loan.termCount} cuotas</span>
               <span className="meta-sep">•</span>
-              <span>{Number(loan.annualInterestRate)}% anual</span>
+              <span>Cargo Fijo</span>
             </div>
           </div>
         </div>
@@ -537,8 +537,8 @@ function InfoTab({ loan }: { loan: LoanDetail }) {
             <span className="info-value">RD$ {fmt(Number(loan.principalAmount))}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">Tasa de interés anual</span>
-            <span className="info-value">{Number(loan.annualInterestRate)}%</span>
+            <span className="info-label">Cargo Financiero</span>
+            <span className="info-value">RD$ {fmt(Number(loan.totalFinanceCharge ?? 0))}</span>
           </div>
           <div className="info-row">
             <span className="info-label">Frecuencia de pago</span>

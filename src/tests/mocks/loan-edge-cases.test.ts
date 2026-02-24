@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import "./setup";
 import { createPayment } from "../../../lib/services/payment.service";
 import { applyPayment } from "../../../lib/domain/loan";
-import { LoanStatus, PaymentType } from "@prisma/client";
+import { LoanStatus, PaymentType, ScheduleStatus } from "@prisma/client";
 import { prismaMock } from "./prisma.mock";
-import { createMockLoan, createMockPayment } from "./test-factories";
+import { createMockFlatRateLoan, createMockPayment } from "./test-factories";
 
 describe("Edge Cases - Payment Processing", () => {
   beforeEach(() => {
@@ -12,37 +12,45 @@ describe("Edge Cases - Payment Processing", () => {
   });
 
   it("should handle decimal precision in payments", async () => {
-    const mockLoan = createMockLoan({ remainingCapital: 1000.5 });
+    const mockLoan = createMockFlatRateLoan({ remainingCapital: 13200 });
     const mockPayment = createMockPayment({
-      totalAmount: 100.25,
-      capitalApplied: 80.15,
-      interestApplied: 20.1,
+      totalAmount: 300.25,
+      capitalApplied: 222.22,
+      interestApplied: 77.78,
     });
-    const updatedLoan = createMockLoan({ remainingCapital: 920.35 });
+    const updatedLoan = createMockFlatRateLoan({ remainingCapital: 12900 });
+    const pendingEntry = {
+      id: "schedule-1",
+      loanId: "loan-flat-1",
+      installmentNumber: 1,
+      dueDate: new Date(Date.now() + 86400000),
+      expectedAmount: 300,
+      status: ScheduleStatus.PENDING,
+      paidAt: null,
+      paymentId: null,
+    };
 
     prismaMock.loan.findUnique.mockResolvedValue(mockLoan);
+    prismaMock.paymentSchedule.findMany.mockResolvedValue([pendingEntry]);
     prismaMock.$transaction.mockImplementation(async (callback) => {
       const txMock = {
         loan: {
-          findUnique: vi.fn().mockResolvedValue(mockLoan),
           update: vi.fn().mockResolvedValue(updatedLoan),
         },
         payment: {
           create: vi.fn().mockResolvedValue(mockPayment),
         },
         paymentSchedule: {
+          updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           findFirst: vi.fn().mockResolvedValue(null),
-          update: vi.fn().mockResolvedValue({}),
         },
       };
       return callback(txMock);
     });
 
     const result = await createPayment({
-      loanId: "loan-1",
-      totalAmount: 100.25,
-      capitalApplied: 80.15,
-      interestApplied: 20.1,
+      loanId: "loan-flat-1",
+      totalAmount: 300.25,
       type: PaymentType.REGULAR,
       createdById: "user-1",
     });
@@ -51,38 +59,46 @@ describe("Edge Cases - Payment Processing", () => {
   });
 
   it("should handle capital-only payments", async () => {
-    const mockLoan = createMockLoan({ remainingCapital: 5000 });
+    const mockLoan = createMockFlatRateLoan({ remainingCapital: 13200 });
     const mockPayment = createMockPayment({
-      totalAmount: 1000,
-      capitalApplied: 1000,
-      interestApplied: 0,
+      totalAmount: 300,
+      capitalApplied: 222.22,
+      interestApplied: 77.78,
       type: PaymentType.CAPITAL_PAYMENT,
     });
-    const updatedLoan = createMockLoan({ remainingCapital: 4000 });
+    const updatedLoan = createMockFlatRateLoan({ remainingCapital: 12900 });
+    const pendingEntry = {
+      id: "schedule-1",
+      loanId: "loan-flat-1",
+      installmentNumber: 1,
+      dueDate: new Date(Date.now() + 86400000),
+      expectedAmount: 300,
+      status: ScheduleStatus.PENDING,
+      paidAt: null,
+      paymentId: null,
+    };
 
     prismaMock.loan.findUnique.mockResolvedValue(mockLoan);
+    prismaMock.paymentSchedule.findMany.mockResolvedValue([pendingEntry]);
     prismaMock.$transaction.mockImplementation(async (callback) => {
       const txMock = {
         loan: {
-          findUnique: vi.fn().mockResolvedValue(mockLoan),
           update: vi.fn().mockResolvedValue(updatedLoan),
         },
         payment: {
           create: vi.fn().mockResolvedValue(mockPayment),
         },
         paymentSchedule: {
+          updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           findFirst: vi.fn().mockResolvedValue(null),
-          update: vi.fn().mockResolvedValue({}),
         },
       };
       return callback(txMock);
     });
 
     const result = await createPayment({
-      loanId: "loan-1",
-      totalAmount: 1000,
-      capitalApplied: 1000,
-      interestApplied: 0,
+      loanId: "loan-flat-1",
+      totalAmount: 300,
       type: PaymentType.CAPITAL_PAYMENT,
       createdById: "user-1",
     });

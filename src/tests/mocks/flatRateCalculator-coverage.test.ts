@@ -7,6 +7,7 @@ import {
   getLoanStructureTexts,
 } from "../../../lib/domain/flatRateCalculator";
 
+
 // ============================================
 // calculateFlatRateNextDate — BIWEEKLY, MONTHLY, default error
 // Lines 153-158
@@ -160,28 +161,18 @@ describe("calculateFlatRateOverdueInfo", () => {
 // ============================================
 
 describe("getLoanStructureTexts", () => {
-  it("FLAT_RATE retorna 'Cargo Financiero' como interestLabel", () => {
-    const texts = getLoanStructureTexts("FLAT_RATE");
+  it("retorna 'Cargo Financiero' como interestLabel", () => {
+    const texts = getLoanStructureTexts();
     expect(texts.interestLabel).toBe("Cargo Financiero");
   });
 
-  it("FRENCH_AMORTIZATION retorna 'Interés' como interestLabel", () => {
-    const texts = getLoanStructureTexts("FRENCH_AMORTIZATION");
-    expect(texts.interestLabel).toBe("Interés");
-  });
-
-  it("FLAT_RATE interestClause menciona 'cargo financiero'", () => {
-    const texts = getLoanStructureTexts("FLAT_RATE");
+  it("interestClause menciona 'cargo financiero'", () => {
+    const texts = getLoanStructureTexts();
     expect(texts.interestClause.toLowerCase()).toContain("cargo financiero");
   });
 
-  it("FRENCH_AMORTIZATION interestClause menciona amortización francesa", () => {
-    const texts = getLoanStructureTexts("FRENCH_AMORTIZATION");
-    expect(texts.interestClause.toLowerCase()).toContain("francés");
-  });
-
-  it("FLAT_RATE paymentClause incluye termCount e installmentAmount", () => {
-    const texts = getLoanStructureTexts("FLAT_RATE");
+  it("paymentClause incluye termCount e installmentAmount", () => {
+    const texts = getLoanStructureTexts();
     const clause = texts.paymentClause({
       termCount: 45,
       installmentAmount: 300,
@@ -192,20 +183,8 @@ describe("getLoanStructureTexts", () => {
     expect(clause).toContain("300");
   });
 
-  it("FRENCH paymentClause incluye termCount y tasa anual", () => {
-    const texts = getLoanStructureTexts("FRENCH_AMORTIZATION");
-    const clause = texts.paymentClause({
-      termCount: 12,
-      installmentAmount: 4871.35,
-      frequency: PaymentFrequency.MONTHLY,
-      annualRate: 8,
-    });
-    expect(clause).toContain("12");
-    expect(clause).toContain("8%");
-  });
-
-  it("FLAT_RATE paymentClause menciona el cargo financiero total", () => {
-    const texts = getLoanStructureTexts("FLAT_RATE");
+  it("paymentClause menciona el cargo financiero total", () => {
+    const texts = getLoanStructureTexts();
     const clause = texts.paymentClause({
       termCount: 8,
       installmentAmount: 1500,

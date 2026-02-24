@@ -11,6 +11,7 @@ import { LoanStatus } from "@prisma/client";
 import { prismaMock } from "./prisma.mock";
 import {
   createMockLoan,
+  createMockFlatRateLoan,
   createMockPayment,
   createMockClient,
 } from "./test-factories";
@@ -132,7 +133,7 @@ describe("getLoanSummary", () => {
 
   it("should return loan summary with calculations", async () => {
     const mockLoan = {
-      ...createMockLoan({ principalAmount: 10000, remainingCapital: 8000 }),
+      ...createMockFlatRateLoan({ principalAmount: 10000, remainingCapital: 8000, termCount: 10, installmentsPaid: 2 }),
       client: createMockClient(),
       payments: [],
       createdBy: { id: "user-1", firstName: "Admin", lastName: "User", email: "admin@test.com" },

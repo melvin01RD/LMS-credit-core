@@ -5,15 +5,7 @@ import {
   PaymentNotAllowedError,
 } from "../errors";
 import {
-  canApplyPayment,
-  calculateNextDueDate,
-  calculateInstallmentAmount,
-  generateAmortizationSchedule,
-  AmortizationEntry,
-} from "../domain/loan";
-import {
   calculateFlatRateLoan,
-  generateFlatRateSchedule,
   FlatRateLoanInput,
   FlatRateLoanResult,
 } from "../domain/flatRateCalculator";
@@ -24,30 +16,17 @@ import { auditLog, AuditAction, AuditEntity } from "./audit.service";
 // INTERFACES
 // ============================================
 
-interface CreateFrenchLoanInput {
-  loanStructure: "FRENCH_AMORTIZATION";
+export interface CreateLoanInput {
   clientId: string;
   principalAmount: number;
-  annualInterestRate: number;   // requerido en francés
+  totalFinanceCharge: number;   // cargo fijo acordado
   paymentFrequency: PaymentFrequency;
   termCount: number;
   createdById: string;
   guarantees?: string;
+  // loanStructure es ignorado — siempre FLAT_RATE
+  loanStructure?: string;
 }
-
-interface CreateFlatRateLoanInput {
-  loanStructure: "FLAT_RATE";
-  clientId: string;
-  principalAmount: number;
-  totalFinanceCharge: number;   // cargo fijo acordado — requerido en flat rate
-  paymentFrequency: PaymentFrequency;
-  termCount: number;
-  createdById: string;
-  guarantees?: string;
-}
-
-// Union type — el discriminante es loanStructure
-export type CreateLoanInput = CreateFrenchLoanInput | CreateFlatRateLoanInput;
 
 export interface LoanFilters {
   clientId?: string;
@@ -57,19 +36,12 @@ export interface LoanFilters {
   search?: string;
 }
 
-export type { AmortizationEntry };
-
 // ============================================
 // HELPERS INTERNOS
 // ============================================
 
-function isFlatRate(data: CreateLoanInput): data is CreateFlatRateLoanInput {
-  return data.loanStructure === "FLAT_RATE";
-}
-
 /**
- * Persiste el PaymentSchedule en DB para cualquier tipo de préstamo.
- * Se llama dentro de la misma transacción de creación del loan.
+ * Persiste el PaymentSchedule en DB dentro de la transacción de creación del loan.
  */
 async function createPaymentScheduleInTx(
   tx: Prisma.TransactionClient,
@@ -100,93 +72,10 @@ async function createPaymentScheduleInTx(
 // ============================================
 
 /**
- * Crea un préstamo nuevo.
- * Detecta automáticamente si es Francés o Flat Rate y aplica la lógica correcta.
- */
-export async function createLoan(data: CreateLoanInput) {
-  if (isFlatRate(data)) {
-    return createFlatRateLoan(data);
-  }
-  return createFrenchLoan(data);
-}
-
-/**
- * Crea préstamo con amortización francesa (comportamiento original).
- */
-async function createFrenchLoan(data: CreateFrenchLoanInput) {
-  const installmentAmount = calculateInstallmentAmount(
-    data.principalAmount,
-    data.annualInterestRate,
-    data.termCount,
-    data.paymentFrequency
-  );
-
-  const nextDueDate = calculateNextDueDate(new Date(), data.paymentFrequency);
-
-  // Generar schedule para persistirlo en DB
-  const amortizationSchedule = generateAmortizationSchedule(
-    data.principalAmount,
-    data.annualInterestRate,
-    data.termCount,
-    data.paymentFrequency,
-    new Date()
-  );
-
-  const loan = await prisma.$transaction(async (tx) => {
-    const newLoan = await tx.loan.create({
-      data: {
-        clientId: data.clientId,
-        loanStructure: LoanStructure.FRENCH_AMORTIZATION,
-        principalAmount: data.principalAmount,
-        annualInterestRate: data.annualInterestRate,
-        paymentFrequency: data.paymentFrequency,
-        termCount: data.termCount,
-        installmentAmount,
-        remainingCapital: data.principalAmount,
-        nextDueDate,
-        status: LoanStatus.ACTIVE,
-        guarantees: data.guarantees,
-        createdById: data.createdById,
-      },
-      include: {
-        client: true,
-        createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
-      },
-    });
-
-    // Persistir schedule en DB — usando nombres de campo correctos de AmortizationEntry
-    await createPaymentScheduleInTx(
-      tx,
-      newLoan.id,
-      amortizationSchedule.map((entry) => ({
-        installmentNumber: entry.installmentNumber,
-        dueDate: entry.dueDate,
-        expectedAmount: entry.totalPayment,
-        principalExpected: entry.principalPayment,
-        interestExpected: entry.interestPayment,
-      }))
-    );
-
-    return newLoan;
-  });
-
-  await auditLog(data.createdById, AuditAction.CREATE_LOAN, AuditEntity.LOAN, loan.id, {
-    loanStructure: "FRENCH_AMORTIZATION",
-    clientId: data.clientId,
-    principalAmount: data.principalAmount,
-    annualInterestRate: data.annualInterestRate,
-    paymentFrequency: data.paymentFrequency,
-    termCount: data.termCount,
-  });
-
-  return loan;
-}
-
-/**
- * Crea préstamo Flat Rate (diario / semanal / quincenal).
+ * Crea un préstamo nuevo con estructura Flat Rate.
  * El cargo financiero es fijo desde el día 1.
  */
-async function createFlatRateLoan(data: CreateFlatRateLoanInput) {
+export async function createLoan(data: CreateLoanInput) {
   const calc = calculateFlatRateLoan({
     principalAmount: data.principalAmount,
     totalFinanceCharge: data.totalFinanceCharge,
@@ -203,13 +92,13 @@ async function createFlatRateLoan(data: CreateFlatRateLoanInput) {
         clientId: data.clientId,
         loanStructure: LoanStructure.FLAT_RATE,
         principalAmount: data.principalAmount,
-        annualInterestRate: null,              // no aplica en flat rate
+        annualInterestRate: null,
         totalFinanceCharge: data.totalFinanceCharge,
         totalPayableAmount: calc.totalPayableAmount,
         paymentFrequency: data.paymentFrequency,
         termCount: data.termCount,
         installmentAmount: calc.installmentAmount,
-        remainingCapital: calc.totalPayableAmount, // total por cobrar
+        remainingCapital: calc.totalPayableAmount,
         installmentsPaid: 0,
         nextDueDate,
         status: LoanStatus.ACTIVE,
@@ -222,7 +111,6 @@ async function createFlatRateLoan(data: CreateFlatRateLoanInput) {
       },
     });
 
-    // Persistir las N cuotas del schedule en DB
     await createPaymentScheduleInTx(tx, newLoan.id, calc.schedule);
 
     return newLoan;
@@ -247,8 +135,7 @@ async function createFlatRateLoan(data: CreateFlatRateLoanInput) {
 // ============================================
 
 /**
- * Obtiene el plan de cuotas de un préstamo con estados actualizados.
- * Sirve para Flat Rate Y Francés.
+ * Obtiene el plan de cuotas de un préstamo.
  */
 export async function getLoanSchedule(loanId: string) {
   const loan = await prisma.loan.findUnique({ where: { id: loanId } });
@@ -261,7 +148,7 @@ export async function getLoanSchedule(loanId: string) {
 }
 
 /**
- * Obtiene las cuotas pendientes de un préstamo Flat Rate.
+ * Obtiene las cuotas pendientes de un préstamo.
  */
 export async function getPendingScheduleEntries(loanId: string) {
   return prisma.paymentSchedule.findMany({
@@ -291,7 +178,7 @@ export async function getOverdueScheduleEntries(loanId: string) {
 }
 
 // ============================================
-// QUERIES EXISTENTES
+// QUERIES
 // ============================================
 
 export async function getLoanById(loanId: string) {
@@ -431,11 +318,7 @@ export async function getLoanSummary(loanId: string) {
   const lateFeesPaid       = Number(payments._sum.lateFeeApplied ?? 0);
   const totalPayableAmount = Number(loan.totalPayableAmount ?? principalAmount);
 
-  // Para Flat Rate el progreso es por cuotas pagadas
-  const progressPercentage =
-    loan.loanStructure === LoanStructure.FLAT_RATE
-      ? (loan.installmentsPaid / loan.termCount) * 100
-      : ((principalAmount - remainingCapital) / principalAmount) * 100;
+  const progressPercentage = (loan.installmentsPaid / loan.termCount) * 100;
 
   return {
     loan,
@@ -456,24 +339,10 @@ export async function getLoanSummary(loanId: string) {
 }
 
 /**
- * Para préstamos Franceses: genera tabla de amortización.
- * Para Flat Rate: retorna el PaymentSchedule desde DB.
+ * Retorna el PaymentSchedule desde DB.
  */
-export async function getLoanAmortization(loanId: string): Promise<AmortizationEntry[] | Awaited<ReturnType<typeof getLoanSchedule>>> {
-  const loan = await prisma.loan.findUnique({ where: { id: loanId } });
-  if (!loan) throw new LoanNotFoundError(loanId);
-
-  if (loan.loanStructure === LoanStructure.FLAT_RATE) {
-    return getLoanSchedule(loanId);
-  }
-
-  return generateAmortizationSchedule(
-    Number(loan.principalAmount),
-    Number(loan.annualInterestRate),
-    loan.termCount,
-    loan.paymentFrequency,
-    loan.createdAt
-  );
+export async function getLoanAmortization(loanId: string) {
+  return getLoanSchedule(loanId);
 }
 
 export async function getOverdueLoans() {

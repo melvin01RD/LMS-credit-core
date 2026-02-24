@@ -22,7 +22,7 @@ interface PaymentDetail {
   loan: {
     id: string;
     principalAmount: string;
-    annualInterestRate: string;
+    totalFinanceCharge: string | null;
     paymentFrequency: string;
     remainingCapital: string;
     status: string;

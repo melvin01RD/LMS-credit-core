@@ -23,9 +23,7 @@ export interface ContratoData {
 
   // Prestamo
   montoOriginal: number;
-  tasaAnual?: number;               // solo FRENCH_AMORTIZATION
-  totalFinanceCharge?: number;      // solo FLAT_RATE
-  loanStructure?: string;           // 'FRENCH_AMORTIZATION' | 'FLAT_RATE'
+  totalFinanceCharge?: number;
   frecuencia: string;
   totalCuotas: number;
   montoCuota: number;
@@ -127,14 +125,9 @@ export function generateContratoPDF(data: ContratoData): Promise<Buffer> {
       // =========================================================
       // CLAUSULAS
       // =========================================================
-      const isFlat = data.loanStructure === 'FLAT_RATE';
-      const clauseInterest = isFlat
-        ? `El presente prestamo conlleva un cargo financiero fijo de ${formatCurrency(data.totalFinanceCharge ?? 0)}, acordado entre las partes y calculado sobre el monto total del capital prestado. Dicho cargo es fijo e invariable durante toda la vigencia del prestamo, independientemente de pagos anticipados.`
-        : `El prestamo devengara una tasa de interes del ${data.tasaAnual ?? 0}% anual, calculada sobre el capital pendiente de pago. Los intereses seran calculados conforme al sistema de amortizacion frances.`;
+      const clauseInterest = `El presente prestamo conlleva un cargo financiero fijo de ${formatCurrency(data.totalFinanceCharge ?? 0)}, acordado entre las partes y calculado sobre el monto total del capital prestado. Dicho cargo es fijo e invariable durante toda la vigencia del prestamo, independientemente de pagos anticipados.`;
 
-      const clausePayment = isFlat
-        ? `EL DEUDOR se compromete a pagar el prestamo en ${data.totalCuotas} cuotas de ${formatCurrency(data.montoCuota)} cada una, con frecuencia ${data.frecuencia.toLowerCase()}, comenzando a partir del ${data.fechaDesembolso}. El cargo financiero total de ${formatCurrency(data.totalFinanceCharge ?? 0)} esta incluido en las cuotas descritas. La fecha de vencimiento final es el ${data.fechaVencimiento}.`
-        : `EL DEUDOR se compromete a pagar el prestamo en ${data.totalCuotas} cuotas de ${formatCurrency(data.montoCuota)} cada una, con frecuencia ${data.frecuencia.toLowerCase()}, comenzando a partir del ${data.fechaDesembolso}. La fecha de vencimiento final del prestamo es el ${data.fechaVencimiento}.`;
+      const clausePayment = `EL DEUDOR se compromete a pagar el prestamo en ${data.totalCuotas} cuotas de ${formatCurrency(data.montoCuota)} cada una, con frecuencia ${data.frecuencia.toLowerCase()}, comenzando a partir del ${data.fechaDesembolso}. El cargo financiero total de ${formatCurrency(data.totalFinanceCharge ?? 0)} esta incluido en las cuotas descritas. La fecha de vencimiento final es el ${data.fechaVencimiento}.`;
 
       const clauses = [
         {
@@ -142,7 +135,7 @@ export function generateContratoPDF(data: ContratoData): Promise<Buffer> {
           body: `EL ACREEDOR concede a EL DEUDOR un prestamo personal por la suma de ${formatCurrency(data.montoOriginal)}, el cual sera utilizado conforme a lo acordado entre las partes. EL DEUDOR declara haber recibido dicha suma a su entera satisfaccion.`,
         },
         {
-          title: isFlat ? 'CLAUSULA SEGUNDA: CARGO FINANCIERO' : 'CLAUSULA SEGUNDA: TASA DE INTERES',
+          title: 'CLAUSULA SEGUNDA: CARGO FINANCIERO',
           body: clauseInterest,
         },
         {
@@ -219,11 +212,7 @@ export function generateContratoPDF(data: ContratoData): Promise<Buffer> {
       };
 
       drawField(col1X, sRowY, 'Monto Prestamo:', formatCurrency(data.montoOriginal));
-      drawField(
-        col1X, sRowY + 15,
-        isFlat ? 'Cargo Financiero:' : 'Tasa Anual:',
-        isFlat ? formatCurrency(data.totalFinanceCharge ?? 0) : `${data.tasaAnual ?? 0}%`
-      );
+      drawField(col1X, sRowY + 15, 'Cargo Financiero:', formatCurrency(data.totalFinanceCharge ?? 0));
       drawField(col2X, sRowY, 'Cuota:', formatCurrency(data.montoCuota));
       drawField(col2X, sRowY + 15, 'Plazo:', `${data.totalCuotas} cuotas (${data.frecuencia})`);
 

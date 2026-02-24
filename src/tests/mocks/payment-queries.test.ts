@@ -154,7 +154,7 @@ describe("getPaymentsSummary", () => {
 
   it("should return aggregated payment summary", async () => {
     prismaMock.loan.findUnique.mockResolvedValue(
-      createMockLoan({ principalAmount: 10000, remainingCapital: 7000 })
+      createMockLoan({ principalAmount: 10000, remainingCapital: 7000, termCount: 10, installmentsPaid: 3 })
     );
     prismaMock.payment.aggregate.mockResolvedValue({
       _sum: {

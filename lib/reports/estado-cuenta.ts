@@ -34,9 +34,7 @@ export interface EstadoCuentaData {
   // Prestamo
   prestamoId: string;
   montoOriginal: number;
-  tasaAnual?: number;               // solo FRENCH_AMORTIZATION
-  totalFinanceCharge?: number;      // solo FLAT_RATE
-  loanStructure?: string;           // 'FRENCH_AMORTIZATION' | 'FLAT_RATE'
+  totalFinanceCharge?: number;
   frecuencia: string;
   totalCuotas: number;
   montoCuota: number;
@@ -158,13 +156,8 @@ export function generateEstadoCuentaPDF(data: EstadoCuentaData): Promise<Buffer>
       drawField(col1X, rowY + 30, 'Direccion:', data.clienteDireccion || 'N/A');
       drawField(col1X, rowY + 45, 'Telefono:', data.clienteTelefono || 'N/A');
 
-      const isFlat = data.loanStructure === 'FLAT_RATE';
       drawField(col2X, rowY, 'Monto Original:', formatCurrency(data.montoOriginal));
-      drawField(
-        col2X, rowY + 15,
-        isFlat ? 'Cargo Financiero:' : 'Tasa Anual:',
-        isFlat ? formatCurrency(data.totalFinanceCharge ?? 0) : `${data.tasaAnual ?? 0}%`
-      );
+      drawField(col2X, rowY + 15, 'Cargo Financiero:', formatCurrency(data.totalFinanceCharge ?? 0));
       drawField(col2X, rowY + 30, 'Frecuencia:', data.frecuencia);
       drawField(col2X, rowY + 45, 'Cuotas:', `${data.totalCuotas} x ${formatCurrency(data.montoCuota)}`);
 

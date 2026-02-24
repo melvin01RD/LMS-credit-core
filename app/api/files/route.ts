@@ -4,16 +4,7 @@ import { getLoans, createLoan } from "@/lib/services";
 import type { LoanStatus, PaymentFrequency } from "@prisma/client";
 
 /**
- * GET /api/loans
- * Lista préstamos con filtros opcionales y paginación
- *
- * Query params:
- *  - page (number)        → página actual (default: 1)
- *  - limit (number)       → registros por página (default: 20)
- *  - clientId (string)    → filtrar por cliente
- *  - status (LoanStatus)  → filtrar por estado: ACTIVE | OVERDUE | PAID | CANCELED
- *  - createdById (string) → filtrar por usuario que creó el préstamo
- *  - search (string)      → búsqueda por nombre/documento del cliente
+ * GET /api/files (alias de /api/loans)
  */
 export const GET = withAuth(async (req) => {
   const { searchParams } = new URL(req.url);
@@ -35,23 +26,13 @@ export const GET = withAuth(async (req) => {
 });
 
 /**
- * POST /api/loans
- * Crea un nuevo préstamo
- *
- * Body (JSON):
- *  - clientId (string)              → ID del cliente
- *  - principalAmount (number)       → monto del capital
- *  - annualInterestRate (number)    → tasa de interés anual (%)
- *  - paymentFrequency (string)      → WEEKLY | BIWEEKLY | MONTHLY
- *  - termCount (number)             → cantidad de cuotas
- *  - createdById (string)           → ID del usuario que crea el préstamo
- *  - guarantees? (string)           → garantías (opcional)
+ * POST /api/files
+ * Crea un nuevo préstamo Flat Rate
  */
 export const POST = withAuth(async (req) => {
   const data = await req.json();
 
-  // Validación básica de campos requeridos a nivel de API
-  const requiredFields = ["clientId", "principalAmount", "annualInterestRate", "paymentFrequency", "termCount", "createdById"];
+  const requiredFields = ["clientId", "principalAmount", "totalFinanceCharge", "paymentFrequency", "termCount", "createdById"];
   const missing = requiredFields.filter((field) => data[field] === undefined || data[field] === null);
 
   if (missing.length > 0) {
@@ -61,7 +42,6 @@ export const POST = withAuth(async (req) => {
     );
   }
 
-  // Validaciones de tipo numéricas
   if (typeof data.principalAmount !== "number" || data.principalAmount <= 0) {
     return NextResponse.json(
       { error: "El monto principal debe ser un número mayor a cero" },
@@ -69,9 +49,9 @@ export const POST = withAuth(async (req) => {
     );
   }
 
-  if (typeof data.annualInterestRate !== "number" || data.annualInterestRate < 0) {
+  if (typeof data.totalFinanceCharge !== "number" || data.totalFinanceCharge < 0) {
     return NextResponse.json(
-      { error: "La tasa de interés anual debe ser un número mayor o igual a cero" },
+      { error: "El cargo financiero debe ser un número mayor o igual a cero" },
       { status: 400 }
     );
   }
@@ -83,7 +63,7 @@ export const POST = withAuth(async (req) => {
     );
   }
 
-  const validFrequencies: PaymentFrequency[] = ["WEEKLY", "BIWEEKLY", "MONTHLY"];
+  const validFrequencies: PaymentFrequency[] = ["DAILY", "WEEKLY", "BIWEEKLY", "MONTHLY"];
   if (!validFrequencies.includes(data.paymentFrequency)) {
     return NextResponse.json(
       { error: `Frecuencia de pago inválida. Valores permitidos: ${validFrequencies.join(", ")}` },
@@ -92,10 +72,10 @@ export const POST = withAuth(async (req) => {
   }
 
   const loan = await createLoan({
-    loanStructure: "FRENCH_AMORTIZATION",
+    loanStructure: "FLAT_RATE",
     clientId: data.clientId,
     principalAmount: data.principalAmount,
-    annualInterestRate: data.annualInterestRate,
+    totalFinanceCharge: data.totalFinanceCharge,
     paymentFrequency: data.paymentFrequency,
     termCount: data.termCount,
     createdById: data.createdById,

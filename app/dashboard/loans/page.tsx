@@ -18,7 +18,7 @@ interface Loan {
   id: string;
   loanStructure: string;
   principalAmount: string;
-  annualInterestRate: string;
+  totalFinanceCharge: string | null;
   paymentFrequency: string;
   termCount: number;
   installmentAmount: string;
@@ -217,9 +217,7 @@ export default function LoansPage() {
                     </td>
                     <td className="td-bold">RD$ {fmt(Number(loan.principalAmount))}</td>
                     <td>
-                      {loan.loanStructure === "FLAT_RATE"
-                        ? <span className="badge-flat">Cargo Fijo</span>
-                        : `${Number(loan.annualInterestRate)}%`}
+                      <span className="badge-flat">Cargo Fijo</span>
                     </td>
                     <td>{FREQUENCY_LABELS[loan.paymentFrequency] ?? loan.paymentFrequency}</td>
                     <td>RD$ {fmt(Number(loan.installmentAmount))}</td>
@@ -536,11 +534,9 @@ function CreateLoanModal({
   const [searchingClients, setSearchingClients] = useState(false);
 
   const [form, setForm] = useState({
-    loanStructure: "FRENCH_AMORTIZATION" as "FRENCH_AMORTIZATION" | "FLAT_RATE",
     principalAmount: "",
-    annualInterestRate: "",
     totalFinanceCharge: "",
-    paymentFrequency: "MONTHLY",
+    paymentFrequency: "WEEKLY",
     termCount: "",
     guarantees: "",
   });
@@ -577,34 +573,15 @@ function CreateLoanModal({
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function setLoanStructure(ls: "FRENCH_AMORTIZATION" | "FLAT_RATE") {
-    setForm((prev) => ({
-      ...prev,
-      loanStructure: ls,
-      paymentFrequency: ls === "FLAT_RATE" ? "WEEKLY" : "MONTHLY",
-    }));
-  }
-
   // Calculate estimated installment (client-side preview)
   const estimatedInstallment = (() => {
     const P = parseFloat(form.principalAmount);
     const n = parseInt(form.termCount);
     if (!P || !n || P <= 0 || n <= 0) return null;
 
-    if (form.loanStructure === "FLAT_RATE") {
-      const charge = parseFloat(form.totalFinanceCharge);
-      if (isNaN(charge) || charge < 0) return null;
-      return (P + charge) / n;
-    } else {
-      const annualRate = parseFloat(form.annualInterestRate);
-      if (!annualRate || annualRate <= 0) return null;
-      const periodsPerYear: Record<string, number> = { DAILY: 365, WEEKLY: 52, BIWEEKLY: 26, MONTHLY: 12 };
-      const periods = periodsPerYear[form.paymentFrequency] || 12;
-      const r = (annualRate / 100) / periods;
-      if (r === 0) return P / n;
-      const factor = Math.pow(1 + r, n);
-      return P * (r * factor) / (factor - 1);
-    }
+    const charge = parseFloat(form.totalFinanceCharge);
+    if (isNaN(charge) || charge < 0) return null;
+    return (P + charge) / n;
   })();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -627,27 +604,16 @@ function CreateLoanModal({
       }
       const meData = await meRes.json();
 
-      const loanPayload = form.loanStructure === "FLAT_RATE"
-        ? {
-            clientId: selectedClient.id,
-            loanStructure: "FLAT_RATE",
-            principalAmount: parseFloat(form.principalAmount),
-            totalFinanceCharge: parseFloat(form.totalFinanceCharge),
-            paymentFrequency: form.paymentFrequency,
-            termCount: parseInt(form.termCount),
-            createdById: meData.user.userId,
-            guarantees: form.guarantees || undefined,
-          }
-        : {
-            clientId: selectedClient.id,
-            loanStructure: "FRENCH_AMORTIZATION",
-            principalAmount: parseFloat(form.principalAmount),
-            annualInterestRate: parseFloat(form.annualInterestRate),
-            paymentFrequency: form.paymentFrequency,
-            termCount: parseInt(form.termCount),
-            createdById: meData.user.userId,
-            guarantees: form.guarantees || undefined,
-          };
+      const loanPayload = {
+        clientId: selectedClient.id,
+        loanStructure: "FLAT_RATE",
+        principalAmount: parseFloat(form.principalAmount),
+        totalFinanceCharge: parseFloat(form.totalFinanceCharge),
+        paymentFrequency: form.paymentFrequency,
+        termCount: parseInt(form.termCount),
+        createdById: meData.user.userId,
+        guarantees: form.guarantees || undefined,
+      };
 
       const res = await fetch("/api/loans", {
         method: "POST",
@@ -755,29 +721,6 @@ function CreateLoanModal({
             )}
           </div>
 
-          {/* Tipo de Préstamo */}
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <label className="form-label">Tipo de Préstamo *</label>
-            <div className="loan-type-selector">
-              <button
-                type="button"
-                className={`loan-type-btn${form.loanStructure === "FRENCH_AMORTIZATION" ? " active" : ""}`}
-                onClick={() => setLoanStructure("FRENCH_AMORTIZATION")}
-              >
-                <span className="loan-type-name">Amortización Francesa</span>
-                <span className="loan-type-desc">Interés sobre saldo — pagos mensuales/quincenales</span>
-              </button>
-              <button
-                type="button"
-                className={`loan-type-btn${form.loanStructure === "FLAT_RATE" ? " active" : ""}`}
-                onClick={() => setLoanStructure("FLAT_RATE")}
-              >
-                <span className="loan-type-name">Cargo Fijo (Moto Concho)</span>
-                <span className="loan-type-desc">Cargo financiero fijo — pagos diarios/semanales</span>
-              </button>
-            </div>
-          </div>
-
           {/* Loan fields */}
           <div className="form-row">
             <div className="form-group">
@@ -794,35 +737,17 @@ function CreateLoanModal({
               />
             </div>
             <div className="form-group">
-              {form.loanStructure === "FLAT_RATE" ? (
-                <>
-                  <label className="form-label">Cargo Financiero (RD$) *</label>
-                  <input
-                    className="form-input"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={form.totalFinanceCharge}
-                    onChange={(e) => updateField("totalFinanceCharge", e.target.value)}
-                    placeholder="3500"
-                    required
-                  />
-                </>
-              ) : (
-                <>
-                  <label className="form-label">Tasa de interés anual (%) *</label>
-                  <input
-                    className="form-input"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={form.annualInterestRate}
-                    onChange={(e) => updateField("annualInterestRate", e.target.value)}
-                    placeholder="24"
-                    required
-                  />
-                </>
-              )}
+              <label className="form-label">Cargo Financiero (RD$) *</label>
+              <input
+                className="form-input"
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.totalFinanceCharge}
+                onChange={(e) => updateField("totalFinanceCharge", e.target.value)}
+                placeholder="3500"
+                required
+              />
             </div>
           </div>
 
@@ -834,19 +759,10 @@ function CreateLoanModal({
                 value={form.paymentFrequency}
                 onChange={(e) => updateField("paymentFrequency", e.target.value)}
               >
-                {form.loanStructure === "FLAT_RATE" ? (
-                  <>
-                    <option value="DAILY">Diaria</option>
-                    <option value="WEEKLY">Semanal</option>
-                    <option value="BIWEEKLY">Quincenal</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="WEEKLY">Semanal</option>
-                    <option value="BIWEEKLY">Quincenal</option>
-                    <option value="MONTHLY">Mensual</option>
-                  </>
-                )}
+                <option value="DAILY">Diaria</option>
+                <option value="WEEKLY">Semanal</option>
+                <option value="BIWEEKLY">Quincenal</option>
+                <option value="MONTHLY">Mensual</option>
               </select>
             </div>
             <div className="form-group">
@@ -858,7 +774,7 @@ function CreateLoanModal({
                 step="1"
                 value={form.termCount}
                 onChange={(e) => updateField("termCount", e.target.value)}
-                placeholder={form.loanStructure === "FLAT_RATE" ? "45" : "12"}
+                placeholder="45"
                 required
               />
             </div>
@@ -1093,49 +1009,6 @@ function CreateLoanModal({
             padding: 4px;
           }
           .selected-client-clear:hover { color: #dc2626; }
-
-          /* Loan type selector */
-          .loan-type-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-          }
-          .loan-type-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 12px 14px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.15s;
-            text-align: left;
-          }
-          .loan-type-btn:hover {
-            border-color: #93c5fd;
-            background: #eff6ff;
-          }
-          .loan-type-btn.active {
-            border-color: #2563eb;
-            background: #eff6ff;
-          }
-          .loan-type-name {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #111827;
-          }
-          .loan-type-btn.active .loan-type-name {
-            color: #2563eb;
-          }
-          .loan-type-desc {
-            font-size: 0.72rem;
-            color: #6b7280;
-            margin-top: 2px;
-          }
-          .loan-type-btn.active .loan-type-desc {
-            color: #3b82f6;
-          }
 
           /* Installment preview */
           .installment-preview {
