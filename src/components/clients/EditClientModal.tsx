@@ -102,6 +102,7 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
                 onChange={(e) => updateField('firstName', e.target.value)}
                 required
                 autoFocus
+                maxLength={25}
               />
             </div>
             <div className="form-group">
@@ -110,6 +111,7 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
                 className="form-input"
                 value={form.lastName}
                 onChange={(e) => updateField('lastName', e.target.value)}
+                maxLength={25}
               />
             </div>
           </div>
@@ -132,6 +134,9 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
                 value={form.phone}
                 onChange={(e) => updateField('phone', e.target.value)}
                 required
+                maxLength={10}
+                pattern="\d{10}"
+                inputMode="numeric"
               />
             </div>
             <div className="form-group">
@@ -164,6 +169,7 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
                 className="form-input"
                 value={form.address}
                 onChange={(e) => updateField('address', e.target.value)}
+                maxLength={50}
               />
             </div>
           </div>

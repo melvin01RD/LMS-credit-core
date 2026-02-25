@@ -42,15 +42,49 @@ export interface ClientFilters {
 // VALIDATION
 // ============================================
 
+function validateFirstName(firstName: string): void {
+  if (!firstName || firstName.trim().length < 2) {
+    throw new InvalidClientDataError("El nombre debe tener al menos 2 caracteres");
+  }
+  if (firstName.trim().length > 25) {
+    throw new InvalidClientDataError("El nombre no puede tener más de 25 caracteres");
+  }
+}
+
+function validateLastName(lastName: string | undefined): void {
+  if (lastName !== undefined && lastName !== null && lastName.trim().length > 0) {
+    if (lastName.trim().length < 2) {
+      throw new InvalidClientDataError("El apellido debe tener al menos 2 caracteres");
+    }
+    if (lastName.trim().length > 25) {
+      throw new InvalidClientDataError("El apellido no puede tener más de 25 caracteres");
+    }
+  }
+}
+
 function validateDocumentId(documentId: string): void {
-  if (!documentId || documentId.trim().length < 5) {
-    throw new InvalidClientDataError("El documento de identidad debe tener al menos 5 caracteres");
+  if (!documentId || documentId.trim().length === 0) {
+    throw new InvalidClientDataError("La cédula es requerida");
+  }
+  const cleaned = documentId.trim();
+  if (!/^\d{11}$/.test(cleaned)) {
+    throw new InvalidClientDataError("La cédula debe tener exactamente 11 dígitos numéricos");
   }
 }
 
 function validatePhone(phone: string): void {
-  if (!phone || phone.trim().length < 7) {
-    throw new InvalidClientDataError("El teléfono debe tener al menos 10 caracteres");
+  if (!phone || phone.trim().length === 0) {
+    throw new InvalidClientDataError("El teléfono es requerido");
+  }
+  const cleaned = phone.trim();
+  if (!/^\d{10}$/.test(cleaned)) {
+    throw new InvalidClientDataError("El teléfono debe tener exactamente 10 dígitos numéricos");
+  }
+}
+
+function validateAddress(address: string | undefined): void {
+  if (address !== undefined && address !== null && address.trim().length > 50) {
+    throw new InvalidClientDataError("La dirección no puede tener más de 50 caracteres");
   }
 }
 
@@ -61,11 +95,11 @@ function validateEmail(email: string | undefined): void {
 }
 
 function validateCreateInput(data: CreateClientInput): void {
-  if (!data.firstName || data.firstName.trim().length < 2) {
-    throw new InvalidClientDataError("El nombre debe tener al menos 2 caracteres");
-  }
+  validateFirstName(data.firstName);
+  validateLastName(data.lastName);
   validateDocumentId(data.documentId);
   validatePhone(data.phone);
+  validateAddress(data.address);
   validateEmail(data.email);
 }
 
@@ -195,8 +229,11 @@ export async function updateClient(clientId: string, data: UpdateClientInput) {
     throw new ClientNotFoundError(clientId);
   }
 
-  if (data.phone) validatePhone(data.phone);
-  if (data.email) validateEmail(data.email);
+  if (data.firstName !== undefined) validateFirstName(data.firstName);
+  if (data.lastName !== undefined) validateLastName(data.lastName);
+  if (data.phone !== undefined) validatePhone(data.phone);
+  if (data.email !== undefined) validateEmail(data.email);
+  if (data.address !== undefined) validateAddress(data.address);
 
   return prisma.client.update({
     where: { id: clientId },

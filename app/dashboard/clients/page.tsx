@@ -520,6 +520,7 @@ function CreateClientModal({
                 onChange={(e) => updateField("firstName", e.target.value)}
                 required
                 autoFocus
+                maxLength={25}
               />
             </div>
             <div className="form-group">
@@ -528,6 +529,7 @@ function CreateClientModal({
                 className="form-input"
                 value={form.lastName}
                 onChange={(e) => updateField("lastName", e.target.value)}
+                maxLength={25}
               />
             </div>
           </div>
@@ -540,7 +542,10 @@ function CreateClientModal({
                 value={form.documentId}
                 onChange={(e) => updateField("documentId", e.target.value)}
                 required
-                placeholder="001-0000000-0"
+                placeholder="00100000008"
+                maxLength={11}
+                pattern="\d{11}"
+                inputMode="numeric"
               />
             </div>
             <div className="form-group">
@@ -550,7 +555,10 @@ function CreateClientModal({
                 value={form.phone}
                 onChange={(e) => updateField("phone", e.target.value)}
                 required
-                placeholder="809-000-0000"
+                placeholder="8090000000"
+                maxLength={10}
+                pattern="\d{10}"
+                inputMode="numeric"
               />
             </div>
           </div>
@@ -572,6 +580,7 @@ function CreateClientModal({
                 className="form-input"
                 value={form.address}
                 onChange={(e) => updateField("address", e.target.value)}
+                maxLength={50}
               />
             </div>
           </div>

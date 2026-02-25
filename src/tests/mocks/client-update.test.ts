@@ -12,14 +12,14 @@ describe("updateClient", () => {
 
   it("should update client fields", async () => {
     const existingClient = createMockClient();
-    const updatedClient = createMockClient({ firstName: "Carlos", phone: "829-555-9999" });
+    const updatedClient = createMockClient({ firstName: "Carlos", phone: "8295559999" });
 
     prismaMock.client.findUnique.mockResolvedValue(existingClient);
     prismaMock.client.update.mockResolvedValue(updatedClient);
 
     const result = await updateClient("client-1", {
       firstName: "Carlos",
-      phone: "829-555-9999",
+      phone: "8295559999",
     });
 
     expect(result.firstName).toBe("Carlos");
