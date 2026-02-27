@@ -122,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
         <div className="sidebar-brand">
           <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="8" fill="#2563eb" />
+            <rect width="32" height="32" rx="8" fill="#6B21E8" />
             <path d="M8 16.5L13 21.5L24 10.5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="sidebar-brand-text">LMS Credit</span>
@@ -239,7 +239,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           width: 32px;
           height: 32px;
           border: 3px solid #e5e7eb;
-          border-top-color: #2563eb;
+          border-top-color: #6B21E8;
           border-radius: 50%;
           animation: spin 0.6s linear infinite;
         }
@@ -248,15 +248,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .layout-container {
           display: flex;
           min-height: 100vh;
-          background: #f3f4f6;
+          background: #F5F6FB;
           font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
         /* ===== SIDEBAR ===== */
         .sidebar {
           width: 240px;
-          background: white;
-          border-right: 1px solid #e5e7eb;
+          background: #1B1F6B;
+          border-right: 1px solid #2A2F8F;
           display: flex;
           flex-direction: column;
           position: fixed;
@@ -276,7 +276,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .sidebar-brand-text {
           font-size: 1.1rem;
           font-weight: 700;
-          color: #111827;
+          color: white;
           letter-spacing: -0.02em;
         }
 
@@ -296,20 +296,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           border-radius: 8px !important;
           font-size: 0.9rem !important;
           font-weight: 500 !important;
-          color: #6b7280 !important;
+          color: #A8ADDB !important;
           transition: all 0.15s ease !important;
         }
         .sidebar-link:hover {
-          background: #f3f4f6 !important;
-          color: #111827 !important;
+          background: #2A2F8F !important;
+          color: white !important;
         }
         .sidebar-link-active {
-          background: #eff6ff !important;
-          color: #2563eb !important;
+          background: #6B21E8 !important;
+          color: white !important;
         }
         .sidebar-link-active:hover {
-          background: #dbeafe !important;
-          color: #2563eb !important;
+          background: #7C3AED !important;
+          color: white !important;
         }
         .sidebar-link-icon {
           display: flex;
@@ -323,7 +323,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         .sidebar-footer {
           padding: 16px;
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid #2A2F8F;
         }
         .sidebar-user-info {
           display: flex;
@@ -335,7 +335,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           width: 36px;
           height: 36px;
           border-radius: 8px;
-          background: #2563eb;
+          background: #6B21E8;
           color: white;
           display: flex;
           align-items: center;
@@ -352,14 +352,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .sidebar-user-name {
           font-size: 0.825rem;
           font-weight: 600;
-          color: #111827;
+          color: white;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
         .sidebar-user-role {
           font-size: 0.7rem;
-          color: #9ca3af;
+          color: #A8ADDB;
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
@@ -369,12 +369,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           gap: 8px;
           width: 100%;
           padding: 8px 12px;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #2A2F8F;
           border-radius: 8px;
           background: none;
           font-size: 0.8rem;
           font-weight: 500;
-          color: #6b7280;
+          color: #A8ADDB;
           cursor: pointer;
           transition: all 0.15s;
         }
@@ -397,7 +397,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .topbar {
           height: 56px;
           background: white;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid #E0E0F0;
           display: flex;
           align-items: center;
           justify-content: flex-end;
@@ -433,8 +433,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           border-radius: 4px;
         }
         .badge-admin {
-          background: #dbeafe;
-          color: #2563eb;
+          background: #EDE9FE;
+          color: #6B21E8;
         }
         .badge-operator {
           background: #f3f4f6;

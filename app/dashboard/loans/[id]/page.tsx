@@ -788,7 +788,8 @@ function AmortizationTab({
   entries: AmortizationEntry[] | null;
   loading: boolean;
 }) {
-  const fmt = (n: number) => n.toLocaleString("es-DO", { minimumFractionDigits: 2 });
+  const fmt = (n: number | undefined | null) =>
+    (n == null ? 0 : Number(n)).toLocaleString("es-DO", { minimumFractionDigits: 2 });
 
   if (loading) {
     return <div style={{ textAlign: "center", padding: "40px", color: "#9ca3af" }}>Cargando tabla de amortización...</div>;
