@@ -668,7 +668,7 @@ function CreateLoanModal({
       const meData = await meRes.json();
 
       const loanPayload = {
-        clientId: selectedClient.id,
+        clientId: selectedClient!.id,
         loanStructure: "FLAT_RATE",
         principalAmount: parseFloat(form.principalAmount),
         totalFinanceCharge: parseFloat(form.totalFinanceCharge),
