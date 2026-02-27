@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRoleGuard } from "@/hooks/useRoleGuard";
 
 interface User {
   id: string;
@@ -14,6 +15,7 @@ interface User {
 }
 
 export default function UsersPage() {
+  useRoleGuard("ADMIN");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
