@@ -45,11 +45,9 @@ test.describe('Gestión de Clientes', () => {
     await page.getByPlaceholder('00100000008').fill('123');
     await page.getByPlaceholder('8090000000').fill('8091234567');
     await page.getByRole('button', { name: /guardar|crear/i }).click();
-    // HTML5 pattern validation prevents submit — modal stays open
+    // React validation shows field-error message — modal stays open
     await expect(page.getByRole('heading', { name: 'Nuevo Cliente' })).toBeVisible();
-    const docInput = page.getByPlaceholder('00100000008');
-    const isValid = await docInput.evaluate((el: HTMLInputElement) => el.validity.valid);
-    expect(isValid).toBe(false);
+    await expect(page.locator('.field-error')).toBeVisible();
   });
 
 });

@@ -86,6 +86,12 @@ export default function LoansPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(message: string) {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const fetchLoans = useCallback(async () => {
     setLoading(true);
@@ -270,8 +276,19 @@ export default function LoansPage() {
       {showModal && (
         <CreateLoanModal
           onClose={() => setShowModal(false)}
-          onCreated={() => { setShowModal(false); fetchLoans(); }}
+          onCreated={() => { setShowModal(false); fetchLoans(); showToast("Préstamo creado exitosamente"); }}
         />
+      )}
+
+      {toast && (
+        <div className="toast-success" role="alert" aria-live="polite">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+            strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          {toast}
+        </div>
       )}
 
       <style jsx>{`
@@ -504,6 +521,28 @@ export default function LoansPage() {
           color: #6b7280;
           white-space: nowrap;
         }
+
+        .toast-success {
+          position: fixed;
+          top: 24px;
+          right: 24px;
+          background: #059669;
+          color: white;
+          padding: 12px 18px;
+          border-radius: 10px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 4px 20px rgba(5, 150, 105, 0.35);
+          z-index: 100;
+          animation: slideIn 0.2s ease;
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(20px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
       `}</style>
     </div>
   );
@@ -543,6 +582,7 @@ function CreateLoanModal({
 
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Search clients with debounce
   useEffect(() => {
@@ -584,14 +624,37 @@ function CreateLoanModal({
     return (P + charge) / n;
   })();
 
+  function validateFields(): boolean {
+    const errors: Record<string, string> = {};
+
+    const principal = parseFloat(form.principalAmount);
+    if (!form.principalAmount || isNaN(principal) || principal <= 0) {
+      errors.principalAmount = "El monto debe ser mayor a cero.";
+    }
+
+    const charge = parseFloat(form.totalFinanceCharge);
+    if (form.totalFinanceCharge === "" || isNaN(charge) || charge < 0) {
+      errors.totalFinanceCharge = "El cargo financiero no puede estar vacío ni ser negativo.";
+    }
+
+    const terms = parseInt(form.termCount);
+    if (!form.termCount || isNaN(terms) || terms <= 0) {
+      errors.termCount = "El número de cuotas debe ser mayor a cero.";
+    }
+
+    if (!selectedClient) {
+      errors.client = "Debe seleccionar un cliente.";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
-    if (!selectedClient) {
-      setError("Debe seleccionar un cliente");
-      return;
-    }
+    if (!validateFields()) return;
 
     setSaving(true);
 
@@ -656,7 +719,7 @@ function CreateLoanModal({
         <form onSubmit={handleSubmit}>
           {/* Client search */}
           <div className="form-group" style={{ marginBottom: 16 }}>
-            <label className="form-label">Cliente *</label>
+            <label className="form-label" htmlFor="clientSearch">Cliente *</label>
             {selectedClient ? (
               <div className="selected-client">
                 <div className="selected-client-avatar">
@@ -682,6 +745,7 @@ function CreateLoanModal({
             ) : (
               <div className="client-search-wrapper">
                 <input
+                  id="clientSearch"
                   className="form-input"
                   placeholder="Buscar cliente por nombre o documento..."
                   value={clientSearch}
@@ -719,13 +783,17 @@ function CreateLoanModal({
                 )}
               </div>
             )}
+            {fieldErrors.client && (
+              <span className="field-error" role="alert">{fieldErrors.client}</span>
+            )}
           </div>
 
           {/* Loan fields */}
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Monto del préstamo *</label>
+              <label className="form-label" htmlFor="principalAmount">Monto del préstamo *</label>
               <input
+                id="principalAmount"
                 className="form-input"
                 type="number"
                 step="0.01"
@@ -735,10 +803,14 @@ function CreateLoanModal({
                 placeholder="50000"
                 required
               />
+              {fieldErrors.principalAmount && (
+                <span className="field-error" role="alert">{fieldErrors.principalAmount}</span>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label">Cargo Financiero (RD$) *</label>
+              <label className="form-label" htmlFor="totalFinanceCharge">Cargo Financiero (RD$) *</label>
               <input
+                id="totalFinanceCharge"
                 className="form-input"
                 type="number"
                 step="0.01"
@@ -748,13 +820,17 @@ function CreateLoanModal({
                 placeholder="3500"
                 required
               />
+              {fieldErrors.totalFinanceCharge && (
+                <span className="field-error" role="alert">{fieldErrors.totalFinanceCharge}</span>
+              )}
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Frecuencia de pago *</label>
+              <label className="form-label" htmlFor="paymentFrequency">Frecuencia de pago *</label>
               <select
+                id="paymentFrequency"
                 className="form-input form-select"
                 value={form.paymentFrequency}
                 onChange={(e) => updateField("paymentFrequency", e.target.value)}
@@ -766,8 +842,9 @@ function CreateLoanModal({
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Número de cuotas *</label>
+              <label className="form-label" htmlFor="termCount">Número de cuotas *</label>
               <input
+                id="termCount"
                 className="form-input"
                 type="number"
                 min="1"
@@ -777,12 +854,16 @@ function CreateLoanModal({
                 placeholder="45"
                 required
               />
+              {fieldErrors.termCount && (
+                <span className="field-error" role="alert">{fieldErrors.termCount}</span>
+              )}
             </div>
           </div>
 
           <div className="form-group" style={{ marginBottom: 12 }}>
-            <label className="form-label">Garantías (opcional)</label>
+            <label className="form-label" htmlFor="guarantees">Garantías (opcional)</label>
             <input
+              id="guarantees"
               className="form-input"
               value={form.guarantees}
               onChange={(e) => updateField("guarantees", e.target.value)}
@@ -1063,6 +1144,18 @@ function CreateLoanModal({
             cursor: pointer;
           }
           .btn-secondary:hover { background: #f9fafb; }
+
+          .field-error {
+            font-size: 0.75rem;
+            color: #dc2626;
+            margin-top: 3px;
+            display: block;
+            line-height: 1.3;
+          }
+          .form-input.input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+          }
 
           @media (max-width: 500px) {
             .form-row { grid-template-columns: 1fr; }

@@ -242,7 +242,7 @@ export default function SettingsPage() {
                     step="0.01"
                     min="0"
                     value={form.lateFeeValue}
-                    onChange={(e) => updateField("lateFeeValue", parseFloat(e.target.value) || 0)}
+                    onChange={(e) => updateField("lateFeeValue", e.target.value === "" ? 0 : parseFloat(e.target.value))}
                   />
                   <span className="input-suffix">
                     {form.lateFeeType === "PERCENTAGE_DAILY" ? "%" : "RD$"}
@@ -258,7 +258,7 @@ export default function SettingsPage() {
                     step="1"
                     min="0"
                     value={form.gracePeriodDays}
-                    onChange={(e) => updateField("gracePeriodDays", parseInt(e.target.value) || 0)}
+                    onChange={(e) => updateField("gracePeriodDays", e.target.value === "" ? 0 : parseInt(e.target.value))}
                   />
                   <span className="input-suffix">días</span>
                 </div>

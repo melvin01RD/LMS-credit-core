@@ -10,7 +10,7 @@ interface Loan {
     documentId: string;
   };
   remainingCapital: string;
-  annualInterestRate: string;
+  installmentAmount: string;
 }
 
 interface CreatePaymentModalProps {
@@ -33,6 +33,7 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Obtener usuario actual
   useEffect(() => {
@@ -86,19 +87,31 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
     setLoans([]);
   }
 
+  function validateFields(): boolean {
+    const errors: Record<string, string> = {};
+
+    if (!form.loanId) {
+      errors.loan = "Debes seleccionar un préstamo activo.";
+    }
+
+    const amount = Number(form.totalAmount);
+    if (!form.totalAmount || isNaN(amount) || amount <= 0) {
+      errors.totalAmount = "El monto debe ser mayor a cero.";
+    }
+
+    if (!form.paymentDate) {
+      errors.paymentDate = "La fecha de pago es requerida.";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
-    if (!form.loanId) {
-      setError("Debes seleccionar un préstamo");
-      return;
-    }
-
-    if (!form.totalAmount || Number(form.totalAmount) <= 0) {
-      setError("El monto debe ser mayor a cero");
-      return;
-    }
+    if (!validateFields()) return;
 
     if (!userId) {
       setError("No se pudo obtener el usuario actual");
@@ -153,9 +166,10 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
         <form onSubmit={handleSubmit}>
           {/* Búsqueda de préstamo */}
           <div className="form-group">
-            <label className="form-label">Préstamo *</label>
+            <label className="form-label" htmlFor="loanSearch">Préstamo *</label>
             <div className="search-container">
               <input
+                id="loanSearch"
                 className="form-input"
                 value={searchTerm}
                 onChange={(e) => {
@@ -170,7 +184,6 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
                 autoFocus={!preselectedLoanId}
               />
               {searching && <span className="search-loading">Buscando...</span>}
-
               {loans.length > 0 && (
                 <div className="search-results">
                   {loans.map((loan) => (
@@ -191,6 +204,9 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
                 </div>
               )}
             </div>
+            {fieldErrors.loan && (
+              <span className="field-error" role="alert">{fieldErrors.loan}</span>
+            )}
           </div>
 
           {/* Información del préstamo seleccionado */}
@@ -205,22 +221,29 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
               <div className="info-row">
                 <span className="info-label">Saldo pendiente:</span>
                 <span className="info-value info-value-amount">
-                  RD$ {Number(selectedLoan.remainingCapital).toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+                  RD$ {Number(selectedLoan.remainingCapital).toLocaleString("es-DO", {
+                    minimumFractionDigits: 2
+                  })}
                 </span>
               </div>
               <div className="info-row">
-                <span className="info-label">Tasa de interés:</span>
-                <span className="info-value">{Number(selectedLoan.annualInterestRate)}% anual</span>
+                <span className="info-label">Cuota:</span>
+                <span className="info-value">
+                  RD$ {Number(selectedLoan.installmentAmount).toLocaleString("es-DO", {
+                    minimumFractionDigits: 2
+                  })}
+                </span>
               </div>
             </div>
           )}
 
           {/* Monto */}
           <div className="form-group">
-            <label className="form-label">Monto del pago *</label>
+            <label className="form-label" htmlFor="totalAmount">Monto del pago *</label>
             <div className="amount-input-container">
               <span className="currency-symbol">RD$</span>
               <input
+                id="totalAmount"
                 className="form-input-amount"
                 type="number"
                 step="0.01"
@@ -236,13 +259,17 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
                 El monto excede el saldo pendiente
               </small>
             )}
+            {fieldErrors.totalAmount && (
+              <span className="field-error" role="alert">{fieldErrors.totalAmount}</span>
+            )}
           </div>
 
           {/* Fecha y Tipo */}
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Fecha de pago *</label>
+              <label className="form-label" htmlFor="paymentDate">Fecha de pago *</label>
               <input
+                id="paymentDate"
                 className="form-input"
                 type="date"
                 value={form.paymentDate}
@@ -250,10 +277,14 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
                 required
                 max={new Date().toISOString().split("T")[0]}
               />
+              {fieldErrors.paymentDate && (
+                <span className="field-error" role="alert">{fieldErrors.paymentDate}</span>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label">Tipo de pago</label>
+              <label className="form-label" htmlFor="paymentType">Tipo de pago</label>
               <select
+                id="paymentType"
                 className="form-input"
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
@@ -516,6 +547,14 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
           }
           .btn-secondary:hover {
             background: #f9fafb;
+          }
+
+          .field-error {
+            font-size: 0.75rem;
+            color: #dc2626;
+            margin-top: 3px;
+            display: block;
+            line-height: 1.3;
           }
 
           @media (max-width: 500px) {

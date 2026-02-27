@@ -38,6 +38,12 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(message: string) {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const fetchClients = useCallback(async () => {
     setLoading(true);
@@ -200,7 +206,11 @@ export default function ClientsPage() {
       {showModal && (
         <CreateClientModal
           onClose={() => setShowModal(false)}
-          onCreated={() => { setShowModal(false); fetchClients(); }}
+          onCreated={() => {
+            setShowModal(false);
+            fetchClients();
+            showToast("Cliente creado exitosamente");
+          }}
         />
       )}
 
@@ -211,6 +221,17 @@ export default function ClientsPage() {
           onClose={() => setEditingClient(null)}
           onUpdated={() => { setEditingClient(null); fetchClients(); }}
         />
+      )}
+
+      {toast && (
+        <div className="toast-success" role="alert" aria-live="polite">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+            strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          {toast}
+        </div>
       )}
 
       <style jsx>{`
@@ -433,6 +454,28 @@ export default function ClientsPage() {
           background: #eff6ff;
           border-color: #2563eb;
         }
+
+        .toast-success {
+          position: fixed;
+          top: 24px;
+          right: 24px;
+          background: #059669;
+          color: white;
+          padding: 12px 18px;
+          border-radius: 10px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 4px 20px rgba(5, 150, 105, 0.35);
+          z-index: 100;
+          animation: slideIn 0.2s ease;
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(20px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
       `}</style>
     </div>
   );
@@ -459,14 +502,37 @@ function CreateClientModal({
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function updateField(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function validateFields(): boolean {
+    const errors: Record<string, string> = {};
+
+    if (form.firstName.trim().length < 2) {
+      errors.firstName = "El nombre debe tener al menos 2 caracteres.";
+    }
+
+    if (!/^\d{11}$/.test(form.documentId)) {
+      errors.documentId = "La cédula debe tener exactamente 11 dígitos numéricos. Ejemplo: 00112345678";
+    }
+
+    if (!/^\d{10}$/.test(form.phone)) {
+      errors.phone = "El teléfono debe tener exactamente 10 dígitos numéricos. Ejemplo: 8091234567";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (!validateFields()) return;
+
     setSaving(true);
 
     try {
@@ -513,8 +579,9 @@ function CreateClientModal({
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Nombre *</label>
+              <label className="form-label" htmlFor="firstName">Nombre *</label>
               <input
+                id="firstName"
                 className="form-input"
                 value={form.firstName}
                 onChange={(e) => updateField("firstName", e.target.value)}
@@ -522,10 +589,14 @@ function CreateClientModal({
                 autoFocus
                 maxLength={25}
               />
+              {fieldErrors.firstName && (
+                <span className="field-error" role="alert">{fieldErrors.firstName}</span>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label">Apellido</label>
+              <label className="form-label" htmlFor="lastName">Apellido</label>
               <input
+                id="lastName"
                 className="form-input"
                 value={form.lastName}
                 onChange={(e) => updateField("lastName", e.target.value)}
@@ -536,37 +607,54 @@ function CreateClientModal({
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Documento de identidad *</label>
+              <label className="form-label" htmlFor="documentId">Documento de identidad *</label>
               <input
-                className="form-input"
+                id="documentId"
+                className={`form-input ${fieldErrors.documentId ? "input-error" : ""}`}
                 value={form.documentId}
-                onChange={(e) => updateField("documentId", e.target.value)}
+                onChange={(e) => {
+                  updateField("documentId", e.target.value);
+                  if (fieldErrors.documentId) {
+                    setFieldErrors((prev) => ({ ...prev, documentId: "" }));
+                  }
+                }}
                 required
                 placeholder="00100000008"
                 maxLength={11}
-                pattern="\d{11}"
                 inputMode="numeric"
               />
+              {fieldErrors.documentId && (
+                <span className="field-error" role="alert">{fieldErrors.documentId}</span>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label">Teléfono *</label>
+              <label className="form-label" htmlFor="phone">Teléfono *</label>
               <input
-                className="form-input"
+                id="phone"
+                className={`form-input ${fieldErrors.phone ? "input-error" : ""}`}
                 value={form.phone}
-                onChange={(e) => updateField("phone", e.target.value)}
+                onChange={(e) => {
+                  updateField("phone", e.target.value);
+                  if (fieldErrors.phone) {
+                    setFieldErrors((prev) => ({ ...prev, phone: "" }));
+                  }
+                }}
                 required
                 placeholder="8090000000"
                 maxLength={10}
-                pattern="\d{10}"
                 inputMode="numeric"
               />
+              {fieldErrors.phone && (
+                <span className="field-error" role="alert">{fieldErrors.phone}</span>
+              )}
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Email</label>
+              <label className="form-label" htmlFor="email">Email</label>
               <input
+                id="email"
                 className="form-input"
                 type="email"
                 value={form.email}
@@ -575,8 +663,9 @@ function CreateClientModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Dirección</label>
+              <label className="form-label" htmlFor="address">Dirección</label>
               <input
+                id="address"
                 className="form-input"
                 value={form.address}
                 onChange={(e) => updateField("address", e.target.value)}
@@ -705,6 +794,18 @@ function CreateClientModal({
             cursor: pointer;
           }
           .btn-secondary:hover { background: #f9fafb; }
+
+          .input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+          }
+          .field-error {
+            font-size: 0.75rem;
+            color: #dc2626;
+            margin-top: 3px;
+            display: block;
+            line-height: 1.3;
+          }
 
           @media (max-width: 500px) {
             .form-row { grid-template-columns: 1fr; }

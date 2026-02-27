@@ -89,6 +89,12 @@ export default function PaymentsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(message: string) {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const hasFilters = typeFilter || dateFrom || dateTo;
 
@@ -320,8 +326,20 @@ export default function PaymentsPage() {
           onCreated={() => {
             setShowModal(false);
             fetchPayments();
+            showToast("Pago registrado exitosamente");
           }}
         />
+      )}
+
+      {toast && (
+        <div className="toast-success" role="alert" aria-live="polite">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+            strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          {toast}
+        </div>
       )}
 
       <style jsx>{`
@@ -565,6 +583,28 @@ export default function PaymentsPage() {
         .pagination-info {
           font-size: 0.825rem;
           color: #6b7280;
+        }
+
+        .toast-success {
+          position: fixed;
+          top: 24px;
+          right: 24px;
+          background: #059669;
+          color: white;
+          padding: 12px 18px;
+          border-radius: 10px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 4px 20px rgba(5, 150, 105, 0.35);
+          z-index: 100;
+          animation: slideIn 0.2s ease;
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(20px); }
+          to   { opacity: 1; transform: translateX(0); }
         }
       `}</style>
     </div>
