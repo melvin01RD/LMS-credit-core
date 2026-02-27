@@ -64,8 +64,8 @@ test.describe('PRES — Gestión de Préstamos', () => {
     await primerFila.click();
     await page.waitForLoadState('networkidle');
 
-    await expect(
-      page.locator('text=Cuota, text=Cronograma, text=Plan de Pagos, table').first()
-    ).toBeVisible({ timeout: 10_000 });
+   await expect(
+  page.locator('table.table').first()
+).toBeVisible({ timeout: 10_000 });
   });
 });

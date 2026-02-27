@@ -46,8 +46,8 @@ test.describe('RBAC — Control de Acceso por Rol', () => {
     expect(body.error.code).toBe('FORBIDDEN');
   });
 
-  test('CRON-01: POST /api/cron/process-overdue sin CRON_SECRET → 401', async ({ request }) => {
-    const response = await request.post('/api/cron/process-overdue', {
+  test('CRON-01: GET/api/cron/process-overdue sin CRON_SECRET → 401', async ({ request }) => {
+    const response = await request.get('/api/cron/process-overdue', {
       headers: { Authorization: 'Bearer token-invalido-12345' },
     });
     expect(response.status()).toBe(401);
