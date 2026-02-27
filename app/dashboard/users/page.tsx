@@ -15,7 +15,8 @@ interface User {
 }
 
 export default function UsersPage() {
-  useRoleGuard("ADMIN");
+  const { checking } = useRoleGuard("ADMIN");
+  if (checking) return null;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

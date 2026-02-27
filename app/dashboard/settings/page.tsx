@@ -20,7 +20,8 @@ interface SystemConfig {
 type Tab = "negocio" | "mora" | "tasas";
 
 export default function SettingsPage() {
-  useRoleGuard("ADMIN");
+  const { checking } = useRoleGuard("ADMIN");
+  if (checking) return null;
   const [activeTab, setActiveTab] = useState<Tab>("negocio");
   const [form, setForm] = useState<SystemConfig>({
     businessName: "",
