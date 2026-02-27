@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api/auth-middleware";
 import { getClientById, updateClient, deactivateClient, auditLog, AuditAction, AuditEntity } from "@/lib/services";
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth(async (req, context) => {
   const params = await context!.params;
   const client = await getClientById(params.id);

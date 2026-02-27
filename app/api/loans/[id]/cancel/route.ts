@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api/auth-middleware";
 import { cancelLoan } from "@/lib/services";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/loans/[id]/cancel
  * Cancela un préstamo (alternativa a DELETE /api/loans/[id])

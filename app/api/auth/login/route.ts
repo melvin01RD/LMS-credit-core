@@ -4,6 +4,8 @@ import { authenticateUser } from "@/lib/services";
 import { createSession } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations";
 
+export const dynamic = 'force-dynamic';
+
 export const POST = withErrorHandler(async (req) => {
   const body = await req.json();
   const { email, password } = loginSchema.parse(body);

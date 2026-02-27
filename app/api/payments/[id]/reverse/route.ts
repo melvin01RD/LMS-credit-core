@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api/auth-middleware";
 import { reversePayment } from "@/lib/services";
 
+export const dynamic = 'force-dynamic';
+
 export const POST = withAuth(async (req, context) => {
   const params = await context!.params;
   const { reversedById, reason } = await req.json();

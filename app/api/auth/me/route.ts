@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { withErrorHandler } from "@/lib/api/error-handler";
 import { getSession } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withErrorHandler(async () => {
   const session = await getSession();
 

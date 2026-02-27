@@ -3,6 +3,8 @@ import { withRole } from "@/lib/api/role-middleware";
 import { getUserById, updateUser, deactivateUser } from "@/lib/services";
 import { UserRole } from "@prisma/client";
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withRole([UserRole.ADMIN], async (req, context) => {
   const params = await context!.params;
   const user = await getUserById(params.id);

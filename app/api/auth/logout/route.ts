@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { withErrorHandler } from "@/lib/api/error-handler";
 import { destroySession } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 export const POST = withErrorHandler(async () => {
   await destroySession();
 

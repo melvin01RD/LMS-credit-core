@@ -3,6 +3,8 @@ import { withAuth } from "@/lib/api/auth-middleware";
 import { createLoan, getLoans } from "@/lib/services";
 import { LoanStatus } from "@prisma/client";
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth(async (req) => {
   const { searchParams } = new URL(req.url);
   const page = Number(searchParams.get("page") ?? 1);

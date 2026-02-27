@@ -3,6 +3,8 @@ import { withAuth } from "@/lib/api/auth-middleware";
 import { getLoans, createLoan } from "@/lib/services";
 import type { LoanStatus, PaymentFrequency } from "@prisma/client";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/files (alias de /api/loans)
  */

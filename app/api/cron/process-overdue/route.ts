@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { processOverdueLoans } from "@/lib/services";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Cron Job — Proceso de mora automática
  *

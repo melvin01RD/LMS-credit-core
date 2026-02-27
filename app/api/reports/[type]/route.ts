@@ -18,6 +18,8 @@ import { getCarteraVigente } from '@/lib/services/cartera-vigente.service';
 import { generateCarteraVigentePDF } from '@/lib/reports/cartera-vigente';
 import { generateCarteraVigenteExcel } from '@/lib/reports/cartera-vigente-excel';
 
+export const dynamic = 'force-dynamic';
+
 const REPORT_CONFIG: Record<PdfReportType, { paramName: string; fileName: string }> = {
   'recibo-pago': {
     paramName: 'paymentId',

@@ -3,6 +3,8 @@ import { withRole } from "@/lib/api/role-middleware";
 import { createUser, getUsers } from "@/lib/services";
 import { UserRole } from "@prisma/client";
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withRole([UserRole.ADMIN], async (req) => {
   const { searchParams } = new URL(req.url);
   const role = searchParams.get("role") as UserRole | undefined;
