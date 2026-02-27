@@ -11,7 +11,6 @@ function getJwtSecret(): string {
   return secret;
 }
 
-const JWT_SECRET = getJwtSecret();
 const SESSION_COOKIE_NAME = "lms_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 días
 
@@ -36,6 +35,7 @@ export interface SessionPayload {
  * Se llama después de autenticar al usuario exitosamente.
  */
 export async function createSession(payload: SessionPayload): Promise<void> {
+  const JWT_SECRET = getJwtSecret();
   const token = jwt.sign(payload, JWT_SECRET, {
     expiresIn: SESSION_MAX_AGE,
   });
@@ -61,6 +61,7 @@ export async function getSession(): Promise<SessionPayload | null> {
 
     if (!token) return null;
 
+    const JWT_SECRET = getJwtSecret();
     const decoded = jwt.verify(token, JWT_SECRET) as SessionPayload & { iat: number; exp: number };
 
     return {
