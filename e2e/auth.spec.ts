@@ -37,3 +37,27 @@ test.describe('Autenticación', () => {
   });
 
 });
+
+// ── Guardia de rol en API (OPERATOR → endpoints ADMIN) ────────────────────────
+
+test.describe('Guardia de rol en API (OPERATOR)', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await loginAsOperator(page);
+  });
+
+  test('GET /api/users retorna 403 con sesión de OPERATOR', async ({ page }) => {
+    const response = await page.context().request.get('/api/users');
+    expect(response.status()).toBe(403);
+    const body = await response.json();
+    expect(body.error.code).toBe('FORBIDDEN');
+  });
+
+  test('GET /api/settings retorna 403 con sesión de OPERATOR', async ({ page }) => {
+    const response = await page.context().request.get('/api/settings');
+    expect(response.status()).toBe(403);
+    const body = await response.json();
+    expect(body.error.code).toBe('FORBIDDEN');
+  });
+
+});

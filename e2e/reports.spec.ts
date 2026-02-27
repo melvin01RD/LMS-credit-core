@@ -447,3 +447,33 @@ test.describe('Seguridad de los endpoints de reportes', () => {
   });
 
 });
+
+// ── 10. Flujo UX completo del Pagaré Notarial ─────────────────────────────────
+
+test.describe('Flujo UX completo del Pagaré Notarial', () => {
+
+  test('navega desde la tarjeta en /reportes hasta el formulario y descarga el PDF', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/dashboard/reportes');
+
+    // La tarjeta completa es clickable (onClick en el div.report-card--available)
+    await page.locator('.report-card--available').filter({ hasText: 'Pagaré Notarial' }).click();
+
+    // Verifica redirección al formulario
+    await expect(page).toHaveURL(/pagare-notarial/);
+    await expect(page.getByRole('heading', { name: 'Pagaré Notarial' })).toBeVisible();
+
+    // Completa el formulario con los datos de prueba
+    await fillPagareForm(page);
+
+    // Intercepta la respuesta del API y verifica PDF válido
+    const [response] = await Promise.all([
+      page.waitForResponse(r => r.url().includes('/api/reports/pagare-notarial')),
+      page.getByRole('button', { name: /Generar Pagar/i }).click(),
+    ]);
+
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('application/pdf');
+  });
+
+});
