@@ -4,6 +4,17 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
+type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY';
+
+const DAY_LABELS: Record<DayOfWeek, string> = {
+  MONDAY: 'Lun',
+  TUESDAY: 'Mar',
+  WEDNESDAY: 'Mié',
+  THURSDAY: 'Jue',
+  FRIDAY: 'Vie',
+  SATURDAY: 'Sáb',
+};
+
 interface Client {
   id: string;
   firstName: string;
@@ -15,6 +26,7 @@ interface Client {
   currency: string;
   active: boolean;
   createdAt: string;
+  collectionDays: DayOfWeek[];
   loans: Loan[];
 }
 
@@ -227,9 +239,21 @@ export default function ClientDetailPage() {
         </table>
       </div>
 
-      {client.address && (
+      {(client.address || client.collectionDays?.length > 0) && (
         <div className="info-block">
-          <span className="info-label">Dirección:</span> {client.address}
+          {client.address && (
+            <div><span className="info-label">Dirección:</span> {client.address}</div>
+          )}
+          {client.collectionDays?.length > 0 && (
+            <div style={{ marginTop: client.address ? '10px' : 0 }}>
+              <span className="info-label">Días de cobro:</span>
+              <span style={{ display: 'inline-flex', gap: '6px', marginLeft: '8px', flexWrap: 'wrap' }}>
+                {client.collectionDays.map((day) => (
+                  <span key={day} className="day-badge">{DAY_LABELS[day]}</span>
+                ))}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -378,6 +402,14 @@ export default function ClientDetailPage() {
           padding: 12px 16px;
         }
         .info-label { font-weight: 600; color: #374151; }
+        .day-badge {
+          background: #dbeafe;
+          color: #2563eb;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 2px 9px;
+          border-radius: 12px;
+        }
       `}</style>
     </div>
   );

@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from 'react';
 
+type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY';
+
+const DAYS: { value: DayOfWeek; label: string }[] = [
+  { value: 'MONDAY',    label: 'Lun' },
+  { value: 'TUESDAY',   label: 'Mar' },
+  { value: 'WEDNESDAY', label: 'Mié' },
+  { value: 'THURSDAY',  label: 'Jue' },
+  { value: 'FRIDAY',    label: 'Vie' },
+  { value: 'SATURDAY',  label: 'Sáb' },
+];
+
 interface Client {
   id: string;
   firstName: string;
@@ -11,6 +22,7 @@ interface Client {
   email: string | null;
   address: string | null;
   currency: string;
+  collectionDays?: DayOfWeek[];
 }
 
 interface EditClientModalProps {
@@ -26,8 +38,9 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
     phone: '',
     email: '',
     address: '',
-    currency: 'DOP'
+    currency: 'DOP',
   });
+  const [collectionDays, setCollectionDays] = useState<DayOfWeek[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -38,12 +51,19 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
       phone: client.phone,
       email: client.email || '',
       address: client.address || '',
-      currency: client.currency
+      currency: client.currency,
     });
+    setCollectionDays(client.collectionDays ?? []);
   }, [client]);
 
   function updateField(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function toggleDay(day: DayOfWeek) {
+    setCollectionDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -59,6 +79,7 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
           ...form,
           email: form.email || undefined,
           address: form.address || undefined,
+          collectionDays,
         }),
       });
 
@@ -116,7 +137,7 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: '12px' }}>
             <label className="form-label">Documento de identidad</label>
             <input
               className="form-input-disabled"
@@ -174,6 +195,23 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
             </div>
           </div>
 
+          {/* Días de cobro */}
+          <div className="form-group" style={{ marginBottom: '12px' }}>
+            <label className="form-label">Días de cobro</label>
+            <div className="days-grid">
+              {DAYS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`day-btn ${collectionDays.includes(value) ? 'day-btn-active' : ''}`}
+                  onClick={() => toggleDay(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>
               Cancelar
@@ -202,6 +240,8 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
             max-width: 560px;
             padding: 24px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            max-height: 90vh;
+            overflow-y: auto;
           }
           .modal-header {
             display: flex;
@@ -271,6 +311,38 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
             font-size: 0.75rem;
             color: #6b7280;
             margin-top: 4px;
+          }
+
+          .days-grid {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+          }
+          .day-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1.5px solid #e5e7eb;
+            background: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.15s;
+          }
+          .day-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+          }
+          .day-btn-active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+          }
+          .day-btn-active:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: white;
           }
 
           .modal-actions {

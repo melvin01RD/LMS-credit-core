@@ -1,6 +1,6 @@
 
 import { prisma } from "../db/prisma";
-import { LoanStatus, Prisma } from "@prisma/client";
+import { DayOfWeek, LoanStatus, Prisma } from "@prisma/client";
 import {
   ClientNotFoundError,
   DuplicateDocumentError,
@@ -30,6 +30,7 @@ export interface UpdateClientInput {
   email?: string;
   address?: string;
   currency?: string;
+  collectionDays?: DayOfWeek[];
 }
 
 export interface ClientFilters {
@@ -244,6 +245,7 @@ export async function updateClient(clientId: string, data: UpdateClientInput) {
       email: data.email?.trim(),
       address: data.address?.trim(),
       currency: data.currency,
+      ...(data.collectionDays !== undefined && { collectionDays: data.collectionDays }),
     },
   });
 }
