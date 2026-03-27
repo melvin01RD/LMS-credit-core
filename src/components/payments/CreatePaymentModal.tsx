@@ -103,6 +103,12 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
       errors.paymentDate = "La fecha de pago es requerida.";
     }
 
+    if (form.type === "CAPITAL_PAYMENT" && selectedLoan) {
+      if (Number(selectedLoan.remainingCapital) <= 0) {
+        errors.type = "Este préstamo no tiene capital pendiente para abonar.";
+      }
+    }
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -293,6 +299,9 @@ export default function CreatePaymentModal({ onClose, onCreated, preselectedLoan
                 <option value="CAPITAL_PAYMENT">Abono a Capital</option>
                 <option value="FULL_SETTLEMENT">Liquidación Total</option>
               </select>
+              {fieldErrors.type && (
+                <span className="field-error" role="alert">{fieldErrors.type}</span>
+              )}
             </div>
           </div>
 

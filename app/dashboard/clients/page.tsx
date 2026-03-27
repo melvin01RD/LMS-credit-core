@@ -208,7 +208,8 @@ export default function ClientsPage() {
           onClose={() => setShowModal(false)}
           onCreated={() => {
             setShowModal(false);
-            fetchClients();
+            setSearch("");
+            setPage(1);
             showToast("Cliente creado exitosamente");
           }}
         />
@@ -516,7 +517,7 @@ function CreateClientModal({
     }
 
     if (!/^\d{11}$/.test(form.documentId)) {
-      errors.documentId = "La cédula debe tener exactamente 11 dígitos numéricos. Ejemplo: 00112345678";
+      errors.documentId = "Formato inválido. La cédula debe tener 11 dígitos numéricos (ej: 00112345678).";
     }
 
     if (!/^\d{10}$/.test(form.phone)) {

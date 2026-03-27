@@ -509,10 +509,32 @@ export async function getLoanSummary(loanId: string) {
 }
 
 /**
- * Retorna el PaymentSchedule desde DB.
+ * Retorna el schedule de amortización mapeado al shape que espera el frontend.
+ * Campos: totalPayment, principalPayment, interestPayment, remainingBalance.
  */
 export async function getLoanAmortization(loanId: string) {
-  return getLoanSchedule(loanId);
+  const loan = await prisma.loan.findUnique({ where: { id: loanId } });
+  if (!loan) throw new LoanNotFoundError(loanId);
+
+  const schedule = await prisma.paymentSchedule.findMany({
+    where: { loanId },
+    orderBy: { installmentNumber: 'asc' },
+  });
+
+  let remainingBalance = Number(loan.principalAmount);
+
+  return schedule.map((entry) => {
+    const principal = Number(entry.principalExpected);
+    remainingBalance -= principal;
+    return {
+      installmentNumber: entry.installmentNumber,
+      dueDate:           entry.dueDate,
+      totalPayment:      Number(entry.expectedAmount),
+      principalPayment:  principal,
+      interestPayment:   Number(entry.interestExpected),
+      remainingBalance,
+    };
+  });
 }
 
 export async function getOverdueLoans() {
