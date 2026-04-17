@@ -104,7 +104,7 @@ export default function ClientDetailPage() {
     return (
       <div style={{ padding: "40px", textAlign: "center" }}>
         <p style={{ color: "#dc2626", marginBottom: "16px" }}>{error}</p>
-        <button onClick={() => router.push("/dashboard/clients")} style={{ color: "#2563eb", background: "none", border: "none", cursor: "pointer" }}>
+        <button onClick={() => router.push("/dashboard/clientes")} style={{ color: "#2563eb", background: "none", border: "none", cursor: "pointer" }}>
           Volver a clientes
         </button>
       </div>
@@ -131,7 +131,7 @@ export default function ClientDetailPage() {
     <div>
       {/* Breadcrumb */}
       <div className="breadcrumb">
-        <Link href="/dashboard/clients" className="breadcrumb-link">Clientes</Link>
+        <Link href="/dashboard/clientes" className="breadcrumb-link">Clientes</Link>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
         <span className="breadcrumb-current">{client.firstName} {client.lastName ?? ""}</span>
       </div>
@@ -184,7 +184,7 @@ export default function ClientDetailPage() {
       {/* Loans table */}
       <div className="section-header">
         <h2 className="section-title">Préstamos</h2>
-        <Link href={`/dashboard/loans`} className="btn-small-primary">
+        <Link href={`/dashboard/prestamos`} className="btn-small-primary">
           + Nuevo Préstamo
         </Link>
       </div>
@@ -213,7 +213,7 @@ export default function ClientDetailPage() {
                   <tr
                     key={loan.id}
                     className="table-row"
-                    onClick={() => router.push(`/dashboard/loans/${loan.id}`)}
+                    onClick={() => router.push(`/dashboard/prestamos/${loan.id}`)}
                   >
                     <td className="td-bold">RD$ {fmt(Number(loan.principalAmount))}</td>
                     <td>Cargo Fijo</td>

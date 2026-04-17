@@ -11,7 +11,7 @@ import { loginAsAdmin, loginAsOperator } from './helpers';
 test.describe('B-01 — Clientes: actualización de lista tras crear cliente', () => {
   test('la lista debe mostrar el nuevo cliente sin recargar la página', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
 
     // Limpiar cualquier cliente QA-REFRESH-TEST de corridas anteriores
     await page.evaluate(async () => {
@@ -68,7 +68,7 @@ test.describe('B-01 — Clientes: actualización de lista tras crear cliente', (
 test.describe('B-02/04/05 — Validaciones de formularios en español', () => {
   test('formulario Nuevo Cliente: mensaje de campo requerido en español', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
     await page.getByRole('button', { name: 'Nuevo Cliente' }).click();
     await page.getByRole('button', { name: 'Crear Cliente' }).click();
 
@@ -87,7 +87,7 @@ test.describe('B-02/04/05 — Validaciones de formularios en español', () => {
 
   test('formulario Nuevo Préstamo: cuotas=0 debe mostrar validación en español', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
     await page.getByRole('button', { name: 'Nuevo Préstamo' }).click();
 
     // Llenar campos mínimos
@@ -115,7 +115,7 @@ test.describe('B-02/04/05 — Validaciones de formularios en español', () => {
 test.describe('B-03 — Pagos: monto que excede saldo pendiente debe deshabilitar el botón', () => {
   test('botón "Registrar Pago" debe deshabilitarse si monto > saldo', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/payments');
+    await page.goto('/dashboard/pagos');
     await page.getByRole('button', { name: 'Registrar Pago' }).click();
 
     // Buscar cualquier préstamo activo/en mora y seleccionar el primero que aparezca
@@ -141,7 +141,7 @@ test.describe('B-03 — Pagos: monto que excede saldo pendiente debe deshabilita
 
   test('no se puede registrar un pago con monto = 0', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/payments');
+    await page.goto('/dashboard/pagos');
     await page.getByRole('button', { name: 'Registrar Pago' }).click();
 
     await page.getByRole('textbox', { name: 'Préstamo *' }).fill('ar');
@@ -166,7 +166,7 @@ test.describe('B-03 — Pagos: monto que excede saldo pendiente debe deshabilita
 test.describe('B-06 — Configuración: sanitización del nombre del negocio', () => {
   test('el campo nombre del negocio rechaza caracteres HTML', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/settings');
+    await page.goto('/dashboard/configuracion');
 
     const nameField = page.getByRole('textbox', { name: /LMS Credit SRL/ }).first();
     const originalValue = await nameField.inputValue();
@@ -196,7 +196,7 @@ test.describe('B-06 — Configuración: sanitización del nombre del negocio', (
 test.describe('B-07 — Usuarios: formulario debe ser modal con overlay', () => {
   test('el formulario Nuevo Usuario tiene overlay y está centrado', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/users');
+    await page.goto('/dashboard/usuarios');
     await page.getByRole('button', { name: 'Nuevo Usuario' }).click();
 
     // Debe existir un overlay o dialog
@@ -223,7 +223,7 @@ test.describe('B-07 — Usuarios: formulario debe ser modal con overlay', () => 
 test.describe('B-08 — Usuarios: el admin no puede desactivarse a sí mismo', () => {
   test('el botón Desactivar del usuario propio debe estar deshabilitado u oculto', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/users');
+    await page.goto('/dashboard/usuarios');
 
     // Localizar la fila del usuario actual usando el badge "Tú" que aparece en su propia fila
     const adminRow = page.locator('tr').filter({ has: page.locator('.you-badge') });
@@ -246,7 +246,7 @@ test.describe('B-09 — Responsive: tablas en mobile 375px', () => {
 
   test('página de Clientes debe mostrar botón "Nuevo Cliente" y columna Acciones en mobile', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
 
     // El botón "Nuevo Cliente" debe ser visible
     await expect(page.getByRole('button', { name: 'Nuevo Cliente' })).toBeVisible();
@@ -259,7 +259,7 @@ test.describe('B-09 — Responsive: tablas en mobile 375px', () => {
 
   test('la tabla de Préstamos muestra información clave en mobile', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
 
     // Debe poder verse el nombre del cliente
     await expect(page.getByText('Darwin Enmanuel Corporan')).toBeVisible();
@@ -270,16 +270,16 @@ test.describe('B-09 — Responsive: tablas en mobile 375px', () => {
 // RBAC: Verificaciones adicionales de seguridad por rol
 // ---------------------------------------------------------------
 test.describe('RBAC — Verificaciones adicionales de acceso por rol', () => {
-  test('OPERATOR no puede acceder a /dashboard/users', async ({ page }) => {
+  test('OPERATOR no puede acceder a /dashboard/usuarios', async ({ page }) => {
     await loginAsOperator(page);
-    await page.goto('/dashboard/users');
+    await page.goto('/dashboard/usuarios');
     await expect(page).toHaveURL(/unauthorized/);
     await expect(page.getByText('403')).toBeVisible();
   });
 
-  test('OPERATOR no puede acceder a /dashboard/settings', async ({ page }) => {
+  test('OPERATOR no puede acceder a /dashboard/configuracion', async ({ page }) => {
     await loginAsOperator(page);
-    await page.goto('/dashboard/settings');
+    await page.goto('/dashboard/configuracion');
     await expect(page).toHaveURL(/unauthorized/);
     await expect(page.getByText(/Acceso Denegado/i)).toBeVisible();
   });
@@ -292,19 +292,19 @@ test.describe('RBAC — Verificaciones adicionales de acceso por rol', () => {
 
   test('OPERATOR sí puede ver Clientes', async ({ page }) => {
     await loginAsOperator(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
     await expect(page.getByRole('heading', { name: 'Clientes' })).toBeVisible();
   });
 
   test('OPERATOR sí puede ver Préstamos', async ({ page }) => {
     await loginAsOperator(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
     await expect(page.getByRole('heading', { name: 'Préstamos' })).toBeVisible();
   });
 
   test('OPERATOR sí puede ver Pagos', async ({ page }) => {
     await loginAsOperator(page);
-    await page.goto('/dashboard/payments');
+    await page.goto('/dashboard/pagos');
     await expect(page.getByRole('heading', { name: 'Pagos' })).toBeVisible();
   });
 
@@ -323,7 +323,7 @@ test.describe('RBAC — Verificaciones adicionales de acceso por rol', () => {
 test.describe('Edge cases — Formulario Nuevo Cliente', () => {
   test('documento con menos de 11 dígitos es rechazado', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
     await page.getByRole('button', { name: 'Nuevo Cliente' }).click();
     await page.getByRole('textbox', { name: 'Nombre *' }).fill('Test Edge');
     await page.getByRole('textbox', { name: 'Documento de identidad *' }).fill('123');
@@ -337,7 +337,7 @@ test.describe('Edge cases — Formulario Nuevo Cliente', () => {
 
   test('el campo documento tiene maxLength=11 para prevenir más de 11 dígitos', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
     await page.getByRole('button', { name: 'Nuevo Cliente' }).click();
 
     const docInput = page.getByRole('textbox', { name: 'Documento de identidad *' });
@@ -349,7 +349,7 @@ test.describe('Edge cases — Formulario Nuevo Cliente', () => {
 
   test('nombre con caracteres especiales ñ y tildes es aceptado', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
 
     // Limpiar cliente de prueba si quedó de una corrida anterior
     await page.evaluate(async () => {
@@ -386,7 +386,7 @@ test.describe('Edge cases — Formulario Nuevo Cliente', () => {
 test.describe('Edge cases — Formulario Nuevo Préstamo', () => {
   test('monto = 0 no debe crear un préstamo', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
     await page.getByRole('button', { name: 'Nuevo Préstamo' }).click();
 
     await page.getByRole('textbox', { name: 'Cliente *' }).fill('Darwin');
@@ -408,7 +408,7 @@ test.describe('Edge cases — Formulario Nuevo Préstamo', () => {
 
   test('cuotas negativas no son aceptadas', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
     await page.getByRole('button', { name: 'Nuevo Préstamo' }).click();
 
     await page.getByRole('textbox', { name: 'Cliente *' }).fill('Darwin');
@@ -461,7 +461,7 @@ test.describe('Accesibilidad básica', () => {
 
   test('clientes: no hay botones sin texto ni aria-label', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
 
     const btnsWithoutText = await page.evaluate(() =>
       Array.from(document.querySelectorAll('button'))
@@ -478,7 +478,7 @@ test.describe('Accesibilidad básica', () => {
 test.describe('Búsqueda y filtros', () => {
   test('búsqueda de clientes filtra correctamente por nombre', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
 
     const searchInput = page.getByPlaceholder(/buscar/i);
     await searchInput.fill('Darwin');
@@ -494,7 +494,7 @@ test.describe('Búsqueda y filtros', () => {
 
   test('búsqueda de clientes con string vacío muestra todos los clientes', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
 
     const searchInput = page.getByPlaceholder(/buscar/i);
     await searchInput.fill('Darwin');
@@ -510,7 +510,7 @@ test.describe('Búsqueda y filtros', () => {
 
   test('filtro de préstamos por estado "En mora" muestra 0 resultados cuando no hay mora', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
 
     await page.getByRole('button', { name: 'En mora' }).click();
     await expect(page.getByText('No se encontraron resultados')).toBeVisible();
@@ -518,7 +518,7 @@ test.describe('Búsqueda y filtros', () => {
 
   test('filtro de préstamos por estado "Activos" muestra al menos 1 préstamo', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
 
     await page.getByRole('button', { name: 'Activos' }).click();
     await page.waitForTimeout(600);

@@ -37,7 +37,7 @@ test.describe('Flujo — Autenticación', () => {
   });
 
   test('ruta protegida sin sesión redirige a /login', async ({ page }) => {
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
     await expect(page).toHaveURL(/login/);
   });
 
@@ -130,7 +130,7 @@ test.describe('Flujo — Gestión de Clientes', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
   });
 
   test('la lista de clientes carga correctamente', async ({ page }) => {
@@ -217,7 +217,7 @@ test.describe('Flujo — Gestión de Préstamos', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
   });
 
   test('la lista de préstamos carga con sus columnas', async ({ page }) => {
@@ -326,7 +326,7 @@ test.describe('Flujo — Gestión de Pagos', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/payments');
+    await page.goto('/dashboard/pagos');
   });
 
   test('la lista de pagos carga correctamente', async ({ page }) => {
@@ -424,7 +424,7 @@ test.describe('Flujo — Configuración', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/settings');
+    await page.goto('/dashboard/configuracion');
   });
 
   test('muestra las 3 pestañas de configuración', async ({ page }) => {

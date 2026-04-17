@@ -135,7 +135,7 @@ export default function ClientsPage() {
               </td></tr>
             ) : (
               clients.data.map((client) => (
-                <tr key={client.id} className="table-row" onClick={() => router.push(`/dashboard/clients/${client.id}`)}>
+                <tr key={client.id} className="table-row" onClick={() => router.push(`/dashboard/clientes/${client.id}`)}>
                   <td>
                     <div className="client-name">
                       <div className="client-avatar">
@@ -314,7 +314,7 @@ export default function ClientsPage() {
           background: white;
           border-radius: 12px;
           border: 1px solid #e5e7eb;
-          overflow: hidden;
+          overflow-x: auto;
         }
         .table {
           width: 100%;
@@ -691,7 +691,7 @@ function CreateClientModal({
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 50;
+            z-index: 200;
             padding: 16px;
           }
           .modal {

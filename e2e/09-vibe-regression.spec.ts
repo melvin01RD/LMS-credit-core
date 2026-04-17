@@ -14,7 +14,7 @@ test.describe('BUG-001 — Amortización con datos reales', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
   });
 
   test('la tabla de amortización NO debe mostrar todos los valores en 0', async ({ page }) => {
@@ -113,7 +113,7 @@ test.describe('BUG-003 — Estado En Mora', () => {
 
     if (hasOverdue > 0) {
       // Si hay cuotas vencidas en el dashboard, el filtro En Mora debe tener resultados
-      await page.goto('/dashboard/loans');
+      await page.goto('/dashboard/prestamos');
       await page.getByRole('button', { name: 'En mora' }).click();
       await page.waitForTimeout(400);
 
@@ -123,7 +123,7 @@ test.describe('BUG-003 — Estado En Mora', () => {
   });
 
   test('préstamo con cuota vencida más de 1 día debe tener estado En Mora o vencida', async ({ page }) => {
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
 
     // Esperar que la tabla cargue antes de buscar
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
@@ -155,7 +155,7 @@ test.describe('BUG-004 — Barra de progreso coherente', () => {
 
   test('el importe mostrado en barra de progreso debe coincidir con Total Pagado', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
 
     // Abrir primer préstamo con pagos
     const firstRow = page.locator('tr.table-row').first();
@@ -199,7 +199,7 @@ test.describe('BUG-006 — Integridad de tipo de pago', () => {
 
   test('un pago tipo Abono Capital debe tener Capital > 0', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/payments');
+    await page.goto('/dashboard/pagos');
 
     await page.getByRole('button', { name: 'Abono Capital' }).click();
     await page.waitForTimeout(400);
@@ -227,7 +227,7 @@ test.describe('BUG-008 — UX post-creación de cliente', () => {
 
   test('al crear cliente con búsqueda activa, el cliente aparece en la lista', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
 
     // Activar filtro que no coincidirá con el nuevo cliente
     await page.getByPlaceholder(/buscar/i).fill('ZZZNOMATCH');
@@ -262,7 +262,7 @@ test.describe('BUG-009 — Validación de campos en Nuevo Cliente', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
     await page.getByRole('button', { name: 'Nuevo Cliente' }).click();
     await expect(page.getByRole('heading', { name: 'Nuevo Cliente' })).toBeVisible();
   });
@@ -307,7 +307,7 @@ test.describe('BUG-012 — Responsive mobile (375px)', () => {
   });
 
   test('la tabla de préstamos debe ser scrollable horizontalmente en mobile', async ({ page }) => {
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
 
     // La tabla debe existir
     await expect(page.locator('table')).toBeVisible();

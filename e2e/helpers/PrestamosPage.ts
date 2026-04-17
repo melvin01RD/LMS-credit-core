@@ -8,7 +8,7 @@ export class PrestamosPage {
   }
 
   async goto() {
-    await this.page.goto('/dashboard/loans');
+    await this.page.goto('/dashboard/prestamos');
     await this.page.waitForLoadState('networkidle');
     await expect(this.page.getByRole('heading', { name: 'Préstamos' })).toBeVisible();
   }

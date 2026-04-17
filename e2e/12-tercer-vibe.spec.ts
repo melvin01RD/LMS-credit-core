@@ -112,7 +112,7 @@ test.describe('C-03 — Detalle Cliente: estado préstamo en inglés "ACTIVE"', 
       return;
     }
 
-    await page.goto(`/dashboard/clients/${clientId}`);
+    await page.goto(`/dashboard/clientes/${clientId}`);
     await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Verificar que el estado NO está en inglés
@@ -183,7 +183,7 @@ test.describe('C-04 — Agenda de Cobros: falta tab Domingo', () => {
 test.describe('C-06 — Préstamos: sin campo "Fecha de inicio" en formulario', () => {
   test('el formulario de nuevo préstamo debe permitir especificar fecha de inicio', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
 
     await page.getByRole('button', { name: 'Nuevo Préstamo' }).click();
 
@@ -294,7 +294,7 @@ test.describe('C-10 — Dashboard: Capital Pendiente puede superar 100% del tota
       return;
     }
 
-    await page.goto(`/dashboard/loans/${loanId}`);
+    await page.goto(`/dashboard/prestamos/${loanId}`);
     await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Obtener monto principal y "pendiente"
@@ -341,7 +341,7 @@ test.describe('C-11 — Detalle Préstamo: "Registrado por" muestra "—" en tab
       return;
     }
 
-    await page.goto(`/dashboard/loans/${loanId}`);
+    await page.goto(`/dashboard/prestamos/${loanId}`);
     await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Ir al tab de pagos
@@ -375,7 +375,7 @@ test.describe('C-11 — Detalle Préstamo: "Registrado por" muestra "—" en tab
 test.describe('RBAC — OPERATOR no puede acceder a rutas de ADMIN', () => {
   test('OPERATOR es redirigido a /unauthorized al acceder a /users', async ({ page }) => {
     await loginAsOperator(page);
-    await page.goto('/dashboard/users');
+    await page.goto('/dashboard/usuarios');
     await page.waitForURL('**/dashboard/unauthorized');
     expect(page.url()).toContain('/unauthorized');
     await expect(page.getByText('403 — Acceso Denegado')).toBeVisible();
@@ -391,7 +391,7 @@ test.describe('RBAC — OPERATOR no puede acceder a rutas de ADMIN', () => {
 
   test('OPERATOR es redirigido a /unauthorized al acceder a /settings', async ({ page }) => {
     await loginAsOperator(page);
-    await page.goto('/dashboard/settings');
+    await page.goto('/dashboard/configuracion');
     await page.waitForURL('**/dashboard/unauthorized');
     expect(page.url()).toContain('/unauthorized');
     await expect(page.getByText('403 — Acceso Denegado')).toBeVisible();
@@ -516,7 +516,7 @@ test.describe('Productos — Validaciones de formulario', () => {
 test.describe('Seguridad — SQL Injection en campos de búsqueda', () => {
   test('búsqueda de clientes con SQL injection no rompe la aplicación', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
 
     const searchBox = page.getByRole('textbox', { name: 'Buscar por nombre, documento' });
     await searchBox.fill("'; DROP TABLE clients; --");
@@ -588,7 +588,7 @@ test.describe('Agenda — Navegación entre días', () => {
 test.describe('Configuración — Guardar cambios del sistema', () => {
   test('puede guardar la configuración del negocio sin errores', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/settings');
+    await page.goto('/dashboard/configuracion');
 
     // Verificar que el nombre del negocio es correcto (sin XSS payload)
     const nombreNegocio = page.getByRole('textbox', { name: 'LMS Credit SRL' });
@@ -603,7 +603,7 @@ test.describe('Configuración — Guardar cambios del sistema', () => {
 
   test('puede navegar entre las tres pestañas de configuración', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/settings');
+    await page.goto('/dashboard/configuracion');
 
     await page.getByRole('button', { name: 'Parámetros de Mora' }).click();
     await expect(page.getByRole('heading', { name: 'Parámetros de Mora' })).toBeVisible();
@@ -622,7 +622,7 @@ test.describe('Configuración — Guardar cambios del sistema', () => {
 test.describe('Pagos — Validaciones de formulario', () => {
   test('no permite registrar pago con monto negativo', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/payments');
+    await page.goto('/dashboard/pagos');
 
     await page.getByRole('button', { name: 'Registrar Pago' }).click();
 

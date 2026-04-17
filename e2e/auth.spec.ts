@@ -32,7 +32,7 @@ test.describe('Autenticación', () => {
 
   test('OPERADOR no puede acceder a usuarios', async ({ page }) => {
     await loginAsOperator(page);
-    await page.goto('/dashboard/users');
+    await page.goto('/dashboard/usuarios');
     await expect(page.getByRole('link', { name: 'Usuarios' })).not.toBeVisible();
   });
 

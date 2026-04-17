@@ -54,7 +54,7 @@ test.describe('PRES — Gestión de Préstamos', () => {
   });
 
   test('PRES-05: Detalle de préstamo muestra plan de pagos', async ({ page }) => {
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
     await page.waitForLoadState('networkidle');
 
     const primerFila = page.locator('table tbody tr').first();

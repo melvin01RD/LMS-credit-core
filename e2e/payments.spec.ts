@@ -16,7 +16,7 @@ test.describe('Registrar Pagos', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/payments');
+    await page.goto('/dashboard/pagos');
   });
 
   // ── 1. Abrir modal ───────────────────────────────────────────────────────

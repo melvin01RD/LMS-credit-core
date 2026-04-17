@@ -253,7 +253,7 @@ export default function ReportesPage() {
         ))}
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         .page-header {
           margin-bottom: 24px;
         }

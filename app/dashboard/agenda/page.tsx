@@ -135,7 +135,7 @@ export default function AgendaPage() {
                     {client.firstName[0]}{client.lastName?.[0] ?? ""}
                   </div>
                   <div>
-                    <Link href={`/dashboard/clients/${client.id}`} className="client-name-link">
+                    <Link href={`/dashboard/clientes/${client.id}`} className="client-name-link">
                       {client.firstName} {client.lastName ?? ""}
                     </Link>
                     <div className="client-sub">{client.phone} · {client.documentId}</div>
@@ -165,7 +165,7 @@ export default function AgendaPage() {
                     {client.loans.map((loan) => (
                       <tr key={loan.id}>
                         <td>
-                          <Link href={`/dashboard/loans/${loan.id}`} className="loan-link">
+                          <Link href={`/dashboard/prestamos/${loan.id}`} className="loan-link">
                             RD$ {fmt(loan.principalAmount)}
                           </Link>
                         </td>

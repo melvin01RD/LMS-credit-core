@@ -403,7 +403,7 @@ export default function DashboardPage() {
                   <tr
                     key={payment.loanId}
                     className="upcoming-row"
-                    onClick={() => router.push(`/dashboard/loans/${payment.loanId}`)}
+                    onClick={() => router.push(`/dashboard/prestamos/${payment.loanId}`)}
                   >
                     <td className="td-bold">{payment.clientName}</td>
                     <td className="td-mono">{payment.clientDocument}</td>

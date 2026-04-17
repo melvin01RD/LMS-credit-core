@@ -122,7 +122,7 @@ export default function PaymentDetailPage() {
       <div style={{ padding: "40px", textAlign: "center" }}>
         <p style={{ color: "#dc2626", marginBottom: "16px" }}>{error}</p>
         <button
-          onClick={() => router.push("/dashboard/payments")}
+          onClick={() => router.push("/dashboard/pagos")}
           style={{ color: "#2563eb", background: "none", border: "none", cursor: "pointer" }}
         >
           Volver a pagos
@@ -160,7 +160,7 @@ export default function PaymentDetailPage() {
     <div>
       {/* Breadcrumb */}
       <div className="breadcrumb">
-        <Link href="/dashboard/payments" className="breadcrumb-link">Pagos</Link>
+        <Link href="/dashboard/pagos" className="breadcrumb-link">Pagos</Link>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
           <polyline points="9 18 15 12 9 6" />
         </svg>
@@ -255,7 +255,7 @@ export default function PaymentDetailPage() {
             <div className="info-row">
               <span className="info-label">Cliente</span>
               <span className="info-value">
-                <Link href={`/dashboard/clients/${payment.loan.client.id}`} style={{ color: "#2563eb", textDecoration: "none" }}>
+                <Link href={`/dashboard/clientes/${payment.loan.client.id}`} style={{ color: "#2563eb", textDecoration: "none" }}>
                   {clientName}
                 </Link>
               </span>
@@ -290,7 +290,7 @@ export default function PaymentDetailPage() {
             </div>
           </div>
           <Link
-            href={`/dashboard/loans/${payment.loan.id}`}
+            href={`/dashboard/prestamos/${payment.loan.id}`}
             className="card-link"
           >
             Ver préstamo →
@@ -343,7 +343,7 @@ export default function PaymentDetailPage() {
           onClose={() => setShowReverseModal(false)}
           onReversed={() => {
             setShowReverseModal(false);
-            router.push("/dashboard/payments");
+            router.push("/dashboard/pagos");
           }}
         />
       )}

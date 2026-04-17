@@ -8,7 +8,7 @@ export class ClientesPage {
   }
 
   async goto() {
-    await this.page.goto('/dashboard/clients');
+    await this.page.goto('/dashboard/clientes');
     await this.page.waitForLoadState('networkidle');
     await expect(this.page.getByRole('heading', { name: 'Clientes' })).toBeVisible();
   }

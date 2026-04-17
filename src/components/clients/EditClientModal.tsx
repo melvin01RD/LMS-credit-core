@@ -230,7 +230,7 @@ export default function EditClientModal({ client, onClose, onUpdated }: EditClie
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 50;
+            z-index: 200;
             padding: 16px;
           }
           .modal {

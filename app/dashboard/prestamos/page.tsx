@@ -216,7 +216,7 @@ export default function LoansPage() {
                   <tr
                     key={loan.id}
                     className="table-row"
-                    onClick={() => router.push(`/dashboard/loans/${loan.id}`)}
+                    onClick={() => router.push(`/dashboard/prestamos/${loan.id}`)}
                   >
                     <td>
                       <div className="client-name">
@@ -972,7 +972,7 @@ function CreateLoanModal({
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 50;
+            z-index: 200;
             padding: 16px;
           }
           .modal {

@@ -11,12 +11,12 @@ test.describe('RBAC — Control de Acceso por Rol', () => {
     await expect(page.getByRole('link', { name: 'Usuarios' })).not.toBeVisible();
   });
 
-  test('USR-02: OPERATOR bloqueado en /dashboard/users por URL directa', async ({ page }) => {
+  test('USR-02: OPERATOR bloqueado en /dashboard/usuarios por URL directa', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.loginAsOperator();
 
-    await page.goto('/dashboard/users');
+    await page.goto('/dashboard/usuarios');
     const estaEnUsuarios = await page
       .getByRole('heading', { name: 'Usuarios' })
       .isVisible()
@@ -53,22 +53,22 @@ test.describe('RBAC — Control de Acceso por Rol', () => {
     expect(response.status()).toBe(401);
   });
 
-  test('ADMIN-01: ADMIN puede acceder a /dashboard/users', async ({ page }) => {
+  test('ADMIN-01: ADMIN puede acceder a /dashboard/usuarios', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.loginAsAdmin();
 
-    await page.goto('/dashboard/users');
+    await page.goto('/dashboard/usuarios');
     await page.waitForLoadState('networkidle');
     await expect(page.getByRole('heading', { name: 'Usuarios' })).toBeVisible({ timeout: 10_000 });
   });
 
-  test('ADMIN-02: ADMIN puede acceder a /dashboard/settings', async ({ page }) => {
+  test('ADMIN-02: ADMIN puede acceder a /dashboard/configuracion', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.loginAsAdmin();
 
-    await page.goto('/dashboard/settings');
+    await page.goto('/dashboard/configuracion');
     await page.waitForLoadState('networkidle');
     // No debe redirigir a login ni mostrar 403
     await expect(page).not.toHaveURL(/login/);

@@ -61,9 +61,9 @@ test.describe('AUTH — Autenticación', () => {
     await expect(page.getByText('ADMIN').first()).toBeVisible({ timeout: 10_000 });
   });
 
-  test('AUTH-08: OPERATOR bloqueado en /dashboard/users por URL directa', async ({ page }) => {
+  test('AUTH-08: OPERATOR bloqueado en /dashboard/usuarios por URL directa', async ({ page }) => {
     await loginPage.loginAsOperator();
-    await page.goto('/dashboard/users');
+    await page.goto('/dashboard/usuarios');
     const isOnUsersPage = await page.getByRole('heading', { name: 'Usuarios' }).isVisible().catch(() => false);
     expect(isOnUsersPage).toBe(false);
   });

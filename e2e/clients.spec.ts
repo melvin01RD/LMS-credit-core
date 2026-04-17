@@ -5,7 +5,7 @@ test.describe('Gestión de Clientes', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/clients');
+    await page.goto('/dashboard/clientes');
   });
 
   test('muestra la lista de clientes', async ({ page }) => {

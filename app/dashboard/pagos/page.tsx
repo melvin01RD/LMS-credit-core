@@ -238,7 +238,7 @@ export default function PaymentsPage() {
                   <tr
                     key={payment.id}
                     className="table-row"
-                    onClick={() => router.push(`/dashboard/payments/${payment.id}`)}
+                    onClick={() => router.push(`/dashboard/pagos/${payment.id}`)}
                   >
                     <td>
                       <div className="client-name">

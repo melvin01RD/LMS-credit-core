@@ -415,7 +415,7 @@ export default function UsersPage() {
           background: white;
           border-radius: 12px;
           border: 1px solid #e5e7eb;
-          overflow: hidden;
+          overflow-x: auto;
         }
         .table {
           width: 100%;
@@ -917,7 +917,7 @@ function ModalStyles() {
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 50;
+        z-index: 200;
         padding: 16px;
       }
       .modal {

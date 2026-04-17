@@ -5,7 +5,7 @@ test.describe('Gestión de Préstamos', () => {
 
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/dashboard/loans');
+    await page.goto('/dashboard/prestamos');
   });
 
   test('muestra la lista de préstamos', async ({ page }) => {

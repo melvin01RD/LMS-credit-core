@@ -204,7 +204,7 @@ export default function LoanDetailPage() {
       <div style={{ padding: "40px", textAlign: "center" }}>
         <p style={{ color: "#dc2626", marginBottom: "16px" }}>{error}</p>
         <button
-          onClick={() => router.push("/dashboard/loans")}
+          onClick={() => router.push("/dashboard/prestamos")}
           style={{ color: "#2563eb", background: "none", border: "none", cursor: "pointer" }}
         >
           Volver a préstamos
@@ -259,7 +259,7 @@ export default function LoanDetailPage() {
         setDraftError(data.error?.message ?? "Error al eliminar el borrador");
         return;
       }
-      router.push("/dashboard/loans");
+      router.push("/dashboard/prestamos");
     } catch {
       setDraftError("Error de conexión");
     } finally {
@@ -271,7 +271,7 @@ export default function LoanDetailPage() {
     <div>
       {/* Breadcrumb */}
       <div className="breadcrumb">
-        <Link href="/dashboard/loans" className="breadcrumb-link">Préstamos</Link>
+        <Link href="/dashboard/prestamos" className="breadcrumb-link">Préstamos</Link>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
         <span className="breadcrumb-current">Detalle del préstamo</span>
       </div>
@@ -282,7 +282,7 @@ export default function LoanDetailPage() {
           <div className="loan-amount-block">
             <h1 className="loan-amount">RD$ {fmt(Number(loan.principalAmount))}</h1>
             <div className="loan-meta">
-              <Link href={`/dashboard/clients/${loan.client.id}`} className="loan-client-link">
+              <Link href={`/dashboard/clientes/${loan.client.id}`} className="loan-client-link">
                 {clientName}
               </Link>
               <span className="meta-sep">•</span>
@@ -789,7 +789,7 @@ function InfoTab({ loan }: { loan: LoanDetail }) {
           <div className="info-row">
             <span className="info-label">Nombre</span>
             <span className="info-value">
-              <Link href={`/dashboard/clients/${loan.client.id}`} style={{ color: "#2563eb", textDecoration: "none" }}>
+              <Link href={`/dashboard/clientes/${loan.client.id}`} style={{ color: "#2563eb", textDecoration: "none" }}>
                 {loan.client.firstName} {loan.client.lastName ?? ""}
               </Link>
             </span>
