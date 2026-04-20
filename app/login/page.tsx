@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -10,6 +10,12 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [inactivityNotice, setInactivityNotice] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setInactivityNotice(params.get("reason") === "inactivity");
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -120,6 +126,17 @@ export default function LoginPage() {
             <p className="form-subtitle">Ingrese sus credenciales para continuar</p>
           </div>
 
+          {inactivityNotice && (
+            <div className="form-inactivity-notice">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>Tu sesión fue cerrada por inactividad. Por favor inicia sesión nuevamente.</span>
+            </div>
+          )}
+
           {error && (
             <div className="form-error">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -146,7 +163,7 @@ export default function LoginPage() {
                 className="form-input"
                 placeholder="usuario@ejemplo.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setInactivityNotice(false); }}
                 autoComplete="off"
                 autoFocus
               />
@@ -168,7 +185,7 @@ export default function LoginPage() {
                 className="form-input"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setInactivityNotice(false); }}
                 autoComplete="off"
               />
               <button
@@ -358,6 +375,25 @@ export default function LoginPage() {
         .form-subtitle {
           font-size: 0.925rem;
           color: #6b7280;
+        }
+
+        .form-inactivity-notice {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          background: #fffbeb;
+          border: 1px solid #fcd34d;
+          border-radius: 10px;
+          padding: 12px 16px;
+          margin-bottom: 1.5rem;
+          color: #92400e;
+          font-size: 0.875rem;
+        }
+
+        .form-inactivity-notice svg {
+          flex-shrink: 0;
+          margin-top: 1px;
+          color: #d97706;
         }
 
         .form-error {

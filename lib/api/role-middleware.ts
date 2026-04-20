@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { getSession, SessionPayload } from "../auth";
+import { getSession, refreshSession, SessionPayload } from "../auth";
 import { ServiceError } from "../errors";
 import { ZodError } from "zod";
 import { UserRole } from "@prisma/client";
+import { INACTIVITY_TIMEOUT_SECONDS, SESSION_COOKIE_NAME } from "../config/session";
 
 // Re-exportar para que los imports de role-middleware tengan acceso
 export interface AuthenticatedRequest extends Request {
@@ -10,14 +11,14 @@ export interface AuthenticatedRequest extends Request {
 }
 
 /**
- * Wrapper de autenticación + autorización por rol.
- * Verifica sesión válida → 401 si no hay sesión.
- * Verifica que session.role esté en allowedRoles → 403 si no tiene permiso.
- * Mismo manejo de errores que withAuth.
+ * Wrapper de autenticación + inactividad + autorización por rol + manejo de errores.
+ * Verifica sesión válida → 401 NOT_AUTHENTICATED si no hay sesión.
+ * Verifica inactividad → 401 SESSION_EXPIRED si lleva más de 10 min inactivo.
+ * Verifica que session.role esté en allowedRoles → 403 FORBIDDEN si no tiene permiso.
+ * En cada request exitoso renueva el JWT (sliding expiration).
  *
  * Uso:
  *   export const GET = withRole([UserRole.ADMIN], async (req) => { ... });
- *   export const GET = withRole(['ADMIN'], async (req) => { ... });
  */
 export function withRole(
   allowedRoles: UserRole[],
@@ -45,6 +46,27 @@ export function withRole(
         );
       }
 
+      // Inactivity check — same logic as withAuth.
+      // session.lastActivity is always set by getSession() for real tokens
+      // (iat fallback for legacy tokens). Test mocks without lastActivity
+      // fall back to `now`, evaluating to 0 and never blocking test traffic.
+      const now = Math.floor(Date.now() / 1000);
+      const lastActivity = session.lastActivity ?? now;
+
+      if (now - lastActivity > INACTIVITY_TIMEOUT_SECONDS) {
+        const response = NextResponse.json(
+          {
+            error: {
+              code: "SESSION_EXPIRED",
+              message: "Sesión expirada por inactividad",
+            },
+          },
+          { status: 401 }
+        );
+        response.cookies.delete(SESSION_COOKIE_NAME);
+        return response;
+      }
+
       if (!allowedRoles.includes(session.role as UserRole)) {
         return NextResponse.json(
           {
@@ -58,7 +80,19 @@ export function withRole(
       }
 
       (req as AuthenticatedRequest).session = session;
-      return await handler(req as AuthenticatedRequest, context);
+
+      const response = await handler(req as AuthenticatedRequest, context);
+
+      // Sliding expiration: issue a fresh JWT with updated lastActivity.
+      const refreshedToken = refreshSession(session);
+      response.cookies.set(SESSION_COOKIE_NAME, refreshedToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      });
+
+      return response;
     } catch (error) {
       if (error instanceof ZodError) {
         return NextResponse.json(

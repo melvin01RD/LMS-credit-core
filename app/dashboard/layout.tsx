@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 
 interface User {
   userId: string;
@@ -93,6 +94,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useInactivityLogout();
 
   useEffect(() => {
     fetch("/api/auth/me")

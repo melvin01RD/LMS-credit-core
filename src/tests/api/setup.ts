@@ -11,6 +11,7 @@ vi.mock("@/lib/auth", () => ({
   }),
   createSession: vi.fn().mockResolvedValue(undefined),
   destroySession: vi.fn().mockResolvedValue(undefined),
+  refreshSession: vi.fn().mockReturnValue("test-token"),
 }));
 
 // Mock de servicios — sin vi.importActual para evitar cargar Prisma real

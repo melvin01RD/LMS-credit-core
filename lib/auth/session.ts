@@ -1,18 +1,16 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { SESSION_COOKIE_NAME, SESSION_JWT_EXPIRY } from "../config/session";
 
 // ============================================
 // CONSTANTS
 // ============================================
 
-function getJwtSecret(): string {
+export function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET no está definido en las variables de entorno");
   return secret;
 }
-
-const SESSION_COOKIE_NAME = "lms_session";
-const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 días
 
 // ============================================
 // INTERFACES
@@ -24,6 +22,7 @@ export interface SessionPayload {
   firstName: string;
   lastName: string;
   role: "ADMIN" | "OPERATOR";
+  lastActivity?: number; // Unix seconds; present in tokens issued after session-timeout deploy
 }
 
 // ============================================
@@ -31,14 +30,17 @@ export interface SessionPayload {
 // ============================================
 
 /**
- * Crea un JWT y lo guarda en una cookie httpOnly.
- * Se llama después de autenticar al usuario exitosamente.
+ * Crea un JWT con lastActivity y lo guarda en una session cookie (sin maxAge).
+ * La cookie muere al cerrar el navegador.
  */
 export async function createSession(payload: SessionPayload): Promise<void> {
   const JWT_SECRET = getJwtSecret();
-  const token = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: SESSION_MAX_AGE,
-  });
+  const now = Math.floor(Date.now() / 1000);
+  const token = jwt.sign(
+    { ...payload, lastActivity: now },
+    JWT_SECRET,
+    { expiresIn: SESSION_JWT_EXPIRY }
+  );
 
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
@@ -46,13 +48,13 @@ export async function createSession(payload: SessionPayload): Promise<void> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: SESSION_MAX_AGE,
+    // Sin maxAge — session cookie, muere al cerrar el navegador
   });
 }
 
 /**
- * Lee la cookie de sesión y verifica el JWT.
- * Retorna el payload si es válido, null si no hay sesión o es inválida.
+ * Lee la cookie, verifica el JWT y retorna el payload.
+ * Expone lastActivity; usa iat como fallback para tokens legacy (pre-deploy).
  */
 export async function getSession(): Promise<SessionPayload | null> {
   try {
@@ -62,7 +64,10 @@ export async function getSession(): Promise<SessionPayload | null> {
     if (!token) return null;
 
     const JWT_SECRET = getJwtSecret();
-    const decoded = jwt.verify(token, JWT_SECRET) as SessionPayload & { iat: number; exp: number };
+    const decoded = jwt.verify(token, JWT_SECRET) as SessionPayload & {
+      iat: number;
+      exp: number;
+    };
 
     return {
       userId: decoded.userId,
@@ -70,10 +75,32 @@ export async function getSession(): Promise<SessionPayload | null> {
       firstName: decoded.firstName,
       lastName: decoded.lastName,
       role: decoded.role,
+      lastActivity: decoded.lastActivity ?? decoded.iat,
     };
   } catch {
     return null;
   }
+}
+
+/**
+ * Re-firma el JWT con lastActivity actualizado para sliding expiration.
+ * Retorna el nuevo token string; el caller lo setea en la cookie de la response.
+ */
+export function refreshSession(payload: SessionPayload): string {
+  const JWT_SECRET = getJwtSecret();
+  const now = Math.floor(Date.now() / 1000);
+  return jwt.sign(
+    {
+      userId: payload.userId,
+      email: payload.email,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      role: payload.role,
+      lastActivity: now,
+    },
+    JWT_SECRET,
+    { expiresIn: SESSION_JWT_EXPIRY }
+  );
 }
 
 /**
